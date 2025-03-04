@@ -1,119 +1,176 @@
-import sys
 import os
+import sys
 import uuid
 import logging
-import json
+import threading
 
-# This set of lines are needed to import the gRPC stubs.
-# The path of the stubs is relative to the current file, or absolute inside the container.
-# Change these lines only if strictly needed.
-FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
-fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/fraud_detection'))
-sys.path.insert(0, fraud_detection_grpc_path)
-import fraud_detection_pb2 as fraud_detection
-import fraud_detection_pb2_grpc as fraud_detection_grpc
-
-import grpc
-#test
-def greet(name='you'):
-    # Establish a connection with the fraud-detection gRPC service.
-    with grpc.insecure_channel('fraud_detection:50051') as channel:
-        # Create a stub object.
-        stub = fraud_detection_grpc.HelloServiceStub(channel)
-        # Call the service through the stub object.
-        response = stub.SayHello(fraud_detection.HelloRequest(name=name))
-    return response.greeting
-
-# Import Flask.
-# Flask is a web framework for Python.
-# It allows you to build a web application quickly.
-# For more information, see https://flask.palletsprojects.com/en/latest/
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import json
+import grpc
 
-# Create a simple Flask app.
+# Path to compiled proto stubs
+FILE = __file__
+PROTO_DIR = os.path.abspath(os.path.join(FILE, '../../../utils/pb/checkout'))
+sys.path.insert(0, PROTO_DIR)
+
+import checkout_pb2 as pb
+import checkout_pb2_grpc as pb_grpc
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[Orchestrator] %(asctime)s %(levelname)s: %(message)s'
+)
+
 app = Flask(__name__)
-# Enable CORS for the app.
-CORS(app, resources={r'/*': {'origins': '*'}})
+CORS(app)
 
-# Define a GET endpoint.
+# Create gRPC channels & stubs (we do this once on startup).
+# You can also do it per request, but reusing channels is generally fine.
+fraud_channel = grpc.insecure_channel(os.getenv("FRAUD_SERVICE_HOST", "fraud_service:50051"))
+verification_channel = grpc.insecure_channel(os.getenv("VERIF_SERVICE_HOST", "verification_service:50052"))
+suggestions_channel = grpc.insecure_channel(os.getenv("SUGG_SERVICE_HOST", "suggestions_service:50053"))
+
+fraud_stub = pb_grpc.FraudServiceStub(fraud_channel)
+verification_stub = pb_grpc.VerificationServiceStub(verification_channel)
+suggestions_stub = pb_grpc.SuggestionsServiceStub(suggestions_channel)
+
 @app.route('/', methods=['GET'])
 def index():
-    """
-    Responds with 'Hello, [name]' when a GET request is made to '/' endpoint.
-    """
-    # Test the fraud-detection gRPC service.
-    response = greet(name='orchestrator')
-    # Return the response.
-    return response
-
-
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+    return "Orchestrator is up", 200
 
 @app.route('/checkout', methods=['POST'])
 def checkout():
     """
-    Handles POST requests to /checkout from the frontend.
-    Responds with a JSON object containing order ID, status, and suggested books,
-    following the OpenAPI spec in bookstore.yaml.
+    Handles the REST request for placing an order.
+    - Validates the JSON payload.
+    - Calls fraud, verification, suggestions in parallel.
+    - Returns JSON with "Order Approved" or "Order Rejected" plus optional suggestions.
     """
-    try:
-        # Try to parse JSON, fallback if Content-Type is wrong
+    data = request.get_json() or {}
+    logging.info("Received /checkout request")
+
+    # Basic validation
+    items = data.get('items', [])
+    if not items or not isinstance(items, list):
+        return jsonify({"error": {"message": "Invalid 'items' field"}}), 400
+
+    user = data.get('user', {})
+    if not user.get('name') or not user.get('contact'):
+        return jsonify({"error": {"message": "User 'name' and 'contact' are required"}}), 400
+
+    cc_info = data.get('creditCard', {})
+    if not cc_info.get('number') or not cc_info.get('expirationDate') or not cc_info.get('cvv'):
+        return jsonify({"error": {"message": "Credit card info incomplete"}}), 400
+
+    # Calculate total price in a naive way (assuming each item has a "quantity" and a "price")
+    # Or the frontend might pass total price directly. We'll just assume:
+    total_price = 0.0
+    for it in items:
+        price = it.get('price', 0.0)
+        qty = it.get('quantity', 1)
+        total_price += price * qty
+
+    order_id = str(uuid.uuid4())
+
+    # Build a gRPC OrderRequest
+    order_request = pb.OrderRequest(
+        order_id=order_id,
+        total_price=total_price,
+        user_name=user['name'],
+        user_contact=user['contact'],
+        credit_card_number=cc_info['number'],
+        credit_card_expiration=cc_info['expirationDate'],
+        credit_card_cvv=cc_info['cvv'],
+    )
+    # Add each item
+    for it in items:
+        name = it.get('name', 'unknown')
+        qty = it.get('quantity', 1)
+        price = it.get('price', 0.0)
+        order_request.items.add(name=name, quantity=qty, price=price)
+
+    # We will store results in a dict that threads can update
+    results = {
+        "fraud": None,
+        "verification": None,
+        "suggestions": None
+    }
+
+    # Define worker functions
+    def call_fraud():
         try:
-            request_data = request.get_json()
-        except Exception:
-            if request.data:
-                request_data = json.loads(request.data.decode('utf-8'))
-            else:
-                request_data = None
+            resp = fraud_stub.CheckFraud(order_request, timeout=5.0)
+            results["fraud"] = resp
+            logging.info(f"FraudService result: is_fraud={resp.is_fraud}, reason={resp.reason}")
+        except grpc.RpcError as e:
+            logging.error(f"FraudService call failed: {e}")
+            # If fail, treat as is_fraud = True (safe approach) or handle differently
+            results["fraud"] = pb.FraudResponse(is_fraud=True, reason="Service error")
 
-        # Validate request data
-        if not request_data or 'items' not in request_data:
-            return jsonify({'error': 'Invalid request: "items" field is required'}), 400
+    def call_verification():
+        try:
+            resp = verification_stub.VerifyOrder(order_request, timeout=5.0)
+            results["verification"] = resp
+            logging.info(f"VerificationService result: is_valid={resp.is_valid}, msg={resp.message}")
+        except grpc.RpcError as e:
+            logging.error(f"VerificationService call failed: {e}")
+            # If fail, treat as not valid or handle differently
+            results["verification"] = pb.VerificationResponse(is_valid=False, message="Service error")
 
-        # Validate items field
-        items = request_data['items']
-        if not isinstance(items, list) or not items:
-            return jsonify({'error': 'Invalid request: "items" must be a non-empty list'}), 400
+    def call_suggestions():
+        try:
+            resp = suggestions_stub.GetSuggestions(order_request, timeout=5.0)
+            results["suggestions"] = resp
+            logging.info(f"SuggestionsService returned {len(resp.suggestions)} suggestions")
+        except grpc.RpcError as e:
+            logging.error(f"SuggestionsService call failed: {e}")
+            # If fail, no suggestions
+            results["suggestions"] = pb.SuggestionsResponse(suggestions=[])
 
-        # Validate each item (expecting 'name' and 'quantity' from frontend)
-        for item in items:
-            if not isinstance(item, dict) or 'name' not in item or 'quantity' not in item:
-                return jsonify({
-                    'error': 'Invalid item format: each item must have "name" and "quantity"'
-                }), 400
-            if not isinstance(item['quantity'], int) or item['quantity'] <= 0:
-                return jsonify({'error': 'Invalid request: "quantity" must be a positive integer'}), 400
+    # Spawn threads for parallel calls
+    t1 = threading.Thread(target=call_fraud)
+    t2 = threading.Thread(target=call_verification)
+    t3 = threading.Thread(target=call_suggestions)
 
-        # Generate a unique order ID
-        order_id = str(uuid.uuid4())
+    # Start threads
+    t1.start()
+    t2.start()
+    t3.start()
 
-        # Simulate order processing
-        order_status = 'Order Approved'
-        suggested_books = [
-            {'bookId': '123', 'title': 'The Best Book', 'author': 'Author 1'},
-            {'bookId': '456', 'title': 'The Second Best Book', 'author': 'Author 2'}
-        ]
+    # Wait for them to finish
+    t1.join()
+    t2.join()
+    t3.join()
 
-        # Build and return response
-        order_status_response = {
-            'orderId': order_id,
-            'status': order_status,
-            'suggestedBooks': suggested_books
-        }
-        return jsonify(order_status_response), 200
+    fraud_resp = results["fraud"]
+    verify_resp = results["verification"]
+    sugg_resp = results["suggestions"]
 
-    except ValueError:
-        return jsonify({'error': 'Invalid JSON format'}), 400
-    except Exception as e:
-        return jsonify({'error': f'Server error: {str(e)}'}), 500
+    # Decide final status
+    if fraud_resp.is_fraud or not verify_resp.is_valid:
+        status = "Order Rejected"
+        suggested_books = []
+    else:
+        status = "Order Approved"
+        # Convert suggestions to JSON
+        suggested_books = []
+        if sugg_resp:
+            for sb in sugg_resp.suggestions:
+                suggested_books.append({
+                    "bookId": sb.book_id,
+                    "title": sb.title,
+                    "author": sb.author
+                })
 
+    response_body = {
+        "orderId": order_id,
+        "status": status,
+        "suggestedBooks": suggested_books
+    }
+
+    return jsonify(response_body), 200
 
 if __name__ == '__main__':
-    # Run the app in debug mode to enable hot reloading.
-    # This is useful for development.
-    # The default port is 5000.
-    app.run(host='0.0.0.0')
+    port = os.getenv("ORCH_PORT", "8081")
+    logging.info(f"Orchestrator starting on port {port}")
+    app.run(host='0.0.0.0', port=int(port), debug=False)

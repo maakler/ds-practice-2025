@@ -1,15 +1,57 @@
 syntax = "proto3";
 
-package hello;
+package checkout;
 
-service HelloService {
-    rpc SayHello (HelloRequest) returns (HelloResponse);
+// A simplified Order message with just enough fields for demonstration
+message Order {
+  string order_id = 1;       // Unique ID for the order
+  string user_name = 2;      // Who placed the order
+  string user_contact = 3;
+  repeated Item items = 4;   // Books or products
+  string credit_card_number = 5;
+  string credit_card_expiry = 6;
+  string credit_card_cvv = 7;
+  double total_amount = 8;
+  bool gift_wrapping = 9;
 }
 
-message HelloRequest {
-    string name = 1;
+// An item in the order
+message Item {
+  string name = 1;
+  int32 quantity = 2;
 }
 
-message HelloResponse {
-    string greeting = 1;
+// Fraud Service
+service FraudDetection {
+  rpc CheckFraud (Order) returns (FraudResult) {}
+}
+
+message FraudResult {
+  bool is_fraud = 1;
+  string reason = 2; // e.g. "Amount over threshold"
+}
+
+// Transaction Verification Service
+service TransactionVerification {
+  rpc VerifyOrder (Order) returns (VerificationResult) {}
+}
+
+message VerificationResult {
+  bool is_valid = 1;
+  string error_message = 2;  // e.g. "Invalid credit card format"
+}
+
+// Suggestions Service
+service Suggestions {
+  rpc GetSuggestions (Order) returns (SuggestionsList) {}
+}
+
+message SuggestionsList {
+  repeated SuggestedBook suggestions = 1;
+}
+
+message SuggestedBook {
+  string book_id = 1;
+  string title = 2;
+  string author = 3;
 }

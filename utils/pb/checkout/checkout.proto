@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package checkout;
+
+// Basic item info
+message Item {
+  string name = 1;
+  int32 quantity = 2;
+  double price = 3;
+}
+
+// Shared request from orchestrator to each service
+message OrderRequest {
+  string order_id = 1;
+  double total_price = 2;
+  repeated Item items = 3;
+  string user_name = 4;
+  string user_contact = 5;
+  string credit_card_number = 6;
+  string credit_card_expiration = 7;
+  string credit_card_cvv = 8;
+  // ... You can add more fields, e.g. addresses, etc.
+}
+
+// Fraud response
+message FraudResponse {
+  bool is_fraud = 1;
+  string reason = 2;
+}
+
+// Verification response
+message VerificationResponse {
+  bool is_valid = 1;
+  string message = 2;
+}
+
+// Suggestions response
+message SuggestionsResponse {
+  repeated SuggestedBook suggestions = 1;
+}
+
+message SuggestedBook {
+  string book_id = 1;
+  string title = 2;
+  string author = 3;
+}
+
+// Fraud Service
+service FraudService {
+  rpc CheckFraud(OrderRequest) returns (FraudResponse);
+}
+
+// Verification Service
+service VerificationService {
+  rpc VerifyOrder(OrderRequest) returns (VerificationResponse);
+}
+
+// Suggestions Service
+service SuggestionsService {
+  rpc GetSuggestions(OrderRequest) returns (SuggestionsResponse);
+}
