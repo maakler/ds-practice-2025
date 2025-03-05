@@ -1,156 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout Page</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center overflow-y-auto">
-    <div class="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md">
-        <form id="checkoutForm">
-            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Checkout Page</h1>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-start py-10 overflow-y-auto">
 
-            <div class="mb-6">
-                <h2 class="text-lg font-semibold text-gray-700">Items</h2>
-                <ul id="itemList" class="list-none p-0 mt-2 space-y-2">
-                    <!-- Items will be dynamically rendered here -->
-                </ul>
-            </div>
+  <div class="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md mb-8">
+    <!-- ========== FORM SUBMISSION SECTION ========== -->
+    <form id="checkoutForm">
+      <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Checkout Page</h1>
 
-            <div class="mb-4">
-                <label for="name" class="block text-sm font-medium text-gray-700">Name:</label>
-                <input type="text" id="name" name="name" value="John Doe" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="contact" class="block text-sm font-medium text-gray-700">Contact:</label>
-                <input type="email" id="contact" name="contact" value="john.doe@example.com" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="creditCard" class="block text-sm font-medium text-gray-700">Credit Card Number:</label>
-                <input type="text" id="creditCard" name="creditCard" value="4111111111111111" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="expirationDate" class="block text-sm font-medium text-gray-700">Expiration Date:</label>
-                <input type="text" id="expirationDate" name="expirationDate" value="12/25" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="cvv" class="block text-sm font-medium text-gray-700">CVV:</label>
-                <input type="text" id="cvv" name="cvv" value="123" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="userComment" class="block text-sm font-medium text-gray-700">Comment:</label>
-                <textarea id="userComment" name="userComment" class="w-full border border-gray-300 rounded-lg p-2 mt-1">Please handle with care.</textarea>
-            </div>
-            <div class="mb-4">
-                <label for="billingAddress" class="block text-sm font-medium text-gray-700">Billing Address:</label>
-                <input type="text" id="billingStreet" name="billingStreet" value="123 Main St" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                <input type="text" id="billingCity" name="billingCity" value="Springfield" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                <input type="text" id="billingState" name="billingState" value="IL" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                <input type="text" id="billingZip" name="billingZip" value="62701" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                <input type="text" id="billingCountry" name="billingCountry" value="USA" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="shippingMethod" class="block text-sm font-medium text-gray-700">Shipping Method:</label>
-                <select id="shippingMethod" name="shippingMethod" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                    <option value="Standard" selected>Standard</option>
-                    <option value="Express">Express</option>
-                    <option value="Next-Day">Next-Day</option>
-                </select>
-            </div>
-            <div class="mb-4 flex items-center">
-                <input type="checkbox" id="giftWrapping" name="giftWrapping" checked class="mr-2 border border-gray-300 rounded">
-                <label for="giftWrapping" class="text-sm font-medium text-gray-700">Gift Wrapping</label>
-            </div>
-            <div class="mb-4 flex items-center">
-                <input type="checkbox" id="terms" name="terms" checked required class="mr-2 border border-gray-300 rounded">
-                <label for="terms" class="text-sm font-medium text-gray-700">Accept Terms and Conditions</label>
-            </div>
-            <button type="submit" class="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700">Submit Order</button>
-        </form>
+      <div class="mb-6">
+        <h2 class="text-lg font-semibold text-gray-700">Items</h2>
+        <ul id="itemList" class="list-none p-0 mt-2 space-y-2">
+          <!-- Items will be dynamically rendered here -->
+        </ul>
+      </div>
 
-        <div id="response" class="mt-6 p-4 border rounded-lg hidden"></div>
+      <div class="mb-4">
+        <label for="name" class="block text-sm font-medium text-gray-700">Name:</label>
+        <input type="text" id="name" name="name" value="John Doe" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+      </div>
+      <div class="mb-4">
+        <label for="contact" class="block text-sm font-medium text-gray-700">Contact:</label>
+        <input type="email" id="contact" name="contact" value="john.doe@example.com" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+      </div>
+      <div class="mb-4">
+        <label for="creditCard" class="block text-sm font-medium text-gray-700">Credit Card Number:</label>
+        <input type="text" id="creditCard" name="creditCard" value="4111111111111111" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+      </div>
+      <div class="mb-4">
+        <label for="expirationDate" class="block text-sm font-medium text-gray-700">Expiration Date:</label>
+        <input type="text" id="expirationDate" name="expirationDate" value="12/25" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+      </div>
+      <div class="mb-4">
+        <label for="cvv" class="block text-sm font-medium text-gray-700">CVV:</label>
+        <input type="text" id="cvv" name="cvv" value="123" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+      </div>
+      <div class="mb-4">
+        <label for="userComment" class="block text-sm font-medium text-gray-700">Comment:</label>
+        <textarea id="userComment" name="userComment" class="w-full border border-gray-300 rounded-lg p-2 mt-1">Please handle with care.</textarea>
+      </div>
+      <div class="mb-4">
+        <label for="billingAddress" class="block text-sm font-medium text-gray-700">Billing Address:</label>
+        <input type="text" id="billingStreet" name="billingStreet" value="123 Main St" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+        <input type="text" id="billingCity" name="billingCity" value="Springfield" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+        <input type="text" id="billingState" name="billingState" value="IL" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+        <input type="text" id="billingZip" name="billingZip" value="66666" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+        <input type="text" id="billingCountry" name="billingCountry" value="USA" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+      </div>
+      <div class="mb-4">
+        <label for="shippingMethod" class="block text-sm font-medium text-gray-700">Shipping Method:</label>
+        <select id="shippingMethod" name="shippingMethod" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+          <option value="Standard" selected>Standard</option>
+          <option value="Express">Express</option>
+          <option value="Next-Day">Next-Day</option>
+        </select>
+      </div>
+      <div class="mb-4 flex items-center">
+        <input type="checkbox" id="giftWrapping" name="giftWrapping" checked class="mr-2 border border-gray-300 rounded">
+        <label for="giftWrapping" class="text-sm font-medium text-gray-700">Gift Wrapping</label>
+      </div>
+      <div class="mb-4 flex items-center">
+        <input type="checkbox" id="terms" name="terms" checked required class="mr-2 border border-gray-300 rounded">
+        <label for="terms" class="text-sm font-medium text-gray-700">Accept Terms and Conditions</label>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700">Submit Order</button>
+    </form>
+
+    <div id="response" class="mt-6 p-4 border rounded-lg hidden"></div>
+  </div>
+
+  <!-- ========== TEST SCENARIOS SECTION ========== -->
+  <div class="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-xl font-bold text-center text-gray-800 mb-4">Test Scenarios</h2>
+    <p class="text-sm text-gray-600 mb-4">
+      Click a button below to send a specific edge-case test order to the Orchestrator.  
+      All responses will appear below in the same <em>Response</em> area.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <button onclick="testSmallOrder()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">1) Small Order (Valid)</button>
+      <button onclick="testHighTotalFraud()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">2) High Total => Fraud</button>
+      <button onclick="testInvalidCard()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">3) Invalid CC => Verification Fail</button>
+      <button onclick="testNoItems()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">4) No Items => Verification Fail</button>
+      <button onclick="testMissingUser()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">5) Missing User => 400</button>
+      <button onclick="testExpensiveItem()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">6) Single Expensive Item => Fraud</button>
     </div>
+  </div>
 
-    <script>
-        const items = [
-            { name: "Book A", quantity: 1 },
-            { name: "Book B", quantity: 2 }
-        ];
+  <script>
+    // Pre-fill default items
+    const items = [
+      { name: "Book A", quantity: 1, price: 10 },
+      { name: "Book B", quantity: 2, price: 12 }
+    ];
+    const itemListElement = document.getElementById('itemList');
+    function populateItemsDisplay() {
+      itemListElement.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name} - Quantity: ${item.quantity} - Price: $${item.price}`;
+        li.className = "bg-gray-100 p-3 rounded-lg";
+        itemListElement.appendChild(li);
+      });
+    }
+    populateItemsDisplay();
 
-        const itemListElement = document.getElementById('itemList');
-        items.forEach(item => {
-            const li = document.createElement('li');
-            li.textContent = `${item.name} - Quantity: ${item.quantity}`;
-            li.className = "bg-gray-100 p-3 rounded-lg";
-            itemListElement.appendChild(li);
+    // Shared orchestrator endpoint
+    const ORCHESTRATOR_URL = 'http://172.18.0.2:8081/checkout';
+
+    // Generic function to POST a payload and update #response
+    async function sendTestRequest(payload, scenarioName) {
+      const responseDiv = document.getElementById('response');
+      try {
+        const response = await fetch(ORCHESTRATOR_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
         });
 
-        document.getElementById('checkoutForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
+        let result;
+        try {
+          result = await response.json();
+        } catch (e) {
+          // If there's no valid JSON, just show raw text
+          result = { error: "No valid JSON in response" };
+        }
 
-            const formData = new FormData(event.target);
-            const data = {
-                user: {
-                    name: formData.get('name'),
-                    contact: formData.get('contact'),
-                },
-                creditCard: {
-                    number: formData.get('creditCard'),
-                    expirationDate: formData.get('expirationDate'),
-                    cvv: formData.get('cvv'),
-                },
-                userComment: formData.get('userComment'),
-                items: items,
-                billingAddress: {
-                    street: formData.get('billingStreet'),
-                    city: formData.get('billingCity'),
-                    state: formData.get('billingState'),
-                    zip: formData.get('billingZip'),
-                    country: formData.get('billingCountry'),
-                },
-                shippingMethod: formData.get('shippingMethod'),
-                giftWrapping: formData.get('giftWrapping') === 'on',
-                termsAccepted: formData.get('terms') === 'on',
-            };
+        if (!response.ok) {
+          // Handle 4xx or 5xx
+          let message = (result && result.error && result.error.message) 
+                        ? result.error.message 
+                        : JSON.stringify(result);
+          responseDiv.textContent = `(${scenarioName}) HTTP ${response.status} Error: ${message}`;
+          responseDiv.className = "mt-6 p-4 border rounded-lg bg-red-100 text-red-700";
+        } else {
+          // Success
+          const status = result.status || 'No status';
+          let html = `<strong>(${scenarioName}) Order status: ${status}</strong><br>`
+                  +  (result.orderId ? `Order ID: ${result.orderId}<br>` : '');
+          if (status === 'Order Approved' && result.suggestedBooks) {
+            const suggestedBooks = result.suggestedBooks.map(book => `<li>${book.title} by ${book.author}</li>`).join('');
+            html += `Suggested Books:<ul class="list-disc pl-5 mt-2 space-y-1">${suggestedBooks}</ul>`;
+            responseDiv.className = "mt-6 p-4 border rounded-lg bg-green-100 text-green-700";
+          } else if (status === 'Order Rejected') {
+            responseDiv.className = "mt-6 p-4 border rounded-lg bg-red-100 text-red-700";
+          } else {
+            responseDiv.className = "mt-6 p-4 border rounded-lg bg-gray-100 text-gray-700";
+          }
+          responseDiv.innerHTML = html;
+        }
+      } catch (error) {
+        responseDiv.textContent = `(${scenarioName}) Unexpected error: ${error.message}`;
+        responseDiv.className = "mt-6 p-4 border rounded-lg bg-red-100 text-red-700";
+      }
+      responseDiv.style.display = 'block';
+      // Scroll to bottom
+      window.scrollTo(0, document.body.scrollHeight);
+    }
 
-            try {
-                const response = await fetch('http://localhost:8081/checkout', {
-                    method: 'POST',
-                    body: JSON.stringify(data),
-                });
+    // ===== EDGE CASE SCENARIOS =====
+    function testSmallOrder() {
+      // A normal, valid order with small total => should be approved
+      const payload = {
+        user: { name: "Alice", contact: "alice@example.com" },
+        creditCard: { number: "1234123412341234", expirationDate: "10/28", cvv: "123" },
+        items: [
+          { name: "Small Book", quantity: 1, price: 9.99 }
+        ],
+        billingAddress: {
+          street: "10 Test St",
+          city: "Testville",
+          state: "TS",
+          zip: "00000",
+          country: "USA"
+        },
+        shippingMethod: "Standard",
+        giftWrapping: false,
+        termsAccepted: true
+      };
+      sendTestRequest(payload, "Small Valid Order");
+    }
 
-                const result = await response.json();
-                const responseDiv = document.getElementById('response');
+    function testHighTotalFraud() {
+      // Large total => triggers fraud detection
+      const payload = {
+        user: { name: "Bob", contact: "bob@example.com" },
+        creditCard: { number: "1234123412341234", expirationDate: "11/29", cvv: "123" },
+        items: [
+          { name: "Expensive Book", quantity: 10, price: 200 } // total 2000
+        ],
+        billingAddress: {
+          street: "1 Rich Ave",
+          city: "Moneytown",
+          state: "CA",
+          zip: "99999",
+          country: "USA"
+        },
+        shippingMethod: "Express",
+        giftWrapping: true,
+        termsAccepted: true
+      };
+      sendTestRequest(payload, "High Total => Fraud");
+    }
 
-                if (response.ok) {
-                    const suggestedBooks = result.suggestedBooks.map(book => `<li>${book.title} by ${book.author}</li>`).join('');
-                    responseDiv.innerHTML = `
-                        <strong>Order status: ${result.status}</strong><br>
-                        Order ID: ${result.orderId}<br>
-                        ${result.status === "Order Approved" ?
-                            `Suggested Books:
-                            <ul class="list-disc pl-5 mt-2 space-y-1">${suggestedBooks}</ul>`
-                        : ``
-                        }
-                    `;
-                    color = result.status === 'Order Approved' ? 'green' : 'red';
-                    responseDiv.className = `mt-6 p-4 border rounded-lg bg-${color}-100 text-${color}-700`;
-                } else {
-                    responseDiv.textContent = `Error: ${result.error.message}`;
-                    responseDiv.className = "mt-6 p-4 border rounded-lg bg-red-100 text-red-700";
-                }
+    function testInvalidCard() {
+      // Invalid credit card (e.g. not 16 digits) => verification fail
+      const payload = {
+        user: { name: "Carol", contact: "carol@example.com" },
+        creditCard: { number: "12345", expirationDate: "12/28", cvv: "999" }, // too short
+        items: [
+          { name: "Regular Book", quantity: 2, price: 10.00 }
+        ],
+        billingAddress: {
+          street: "2 Apple Ln",
+          city: "Orangeville",
+          state: "FL",
+          zip: "54321",
+          country: "USA"
+        },
+        shippingMethod: "Standard",
+        giftWrapping: false,
+        termsAccepted: true
+      };
+      sendTestRequest(payload, "Invalid CC => Verification Fail");
+    }
 
-                responseDiv.style.display = 'block';
-                // scroll to the bottom of the page
-                window.scrollTo(0, document.body.scrollHeight);
-            } catch (error) {
-                const responseDiv = document.getElementById('response');
-                responseDiv.textContent = `Unexpected error occurred: ${error.message}`;
-                responseDiv.className = "mt-6 p-4 border rounded-lg bg-red-100 text-red-700";
-                responseDiv.style.display = 'block';
+    function testNoItems() {
+      // Zero items => verification fail
+      const payload = {
+        user: { name: "Dave", contact: "dave@example.com" },
+        creditCard: { number: "1234123412341234", expirationDate: "12/28", cvv: "123" },
+        items: [],
+        billingAddress: {
+          street: "123 Some St",
+          city: "Nothing City",
+          state: "NY",
+          zip: "10001",
+          country: "USA"
+        },
+        shippingMethod: "Next-Day",
+        giftWrapping: true,
+        termsAccepted: true
+      };
+      sendTestRequest(payload, "No Items => Verification Fail");
+    }
+
+    function testMissingUser() {
+      // No user info => 400 error from orchestrator
+      const payload = {
+        user: { name: "", contact: "" }, // missing user fields
+        creditCard: { number: "1234123412341234", expirationDate: "01/30", cvv: "456" },
+        items: [
+          { name: "Another Book", quantity: 1, price: 20 }
+        ],
+        billingAddress: {
+          street: "321 Broken Way",
+          city: "Nullsville",
+          state: "TS",
+          zip: "11111",
+          country: "USA"
+        },
+        shippingMethod: "Standard",
+        giftWrapping: false,
+        termsAccepted: true
+      };
+      sendTestRequest(payload, "Missing User => 400");
+    }
+
+    function testExpensiveItem() {
+      // Single item but >1000 => Fraud
+      const payload = {
+        user: { name: "Eve", contact: "eve@example.com" },
+        creditCard: { number: "1234123412341234", expirationDate: "05/28", cvv: "123" },
+        items: [
+          { name: "Ultra Book", quantity: 1, price: 1500.0 }
+        ],
+        billingAddress: {
+          street: "999 Lucky Dr",
+          city: "GoldenCity",
+          state: "TX",
+          zip: "77777",
+          country: "USA"
+        },
+        shippingMethod: "Express",
+        giftWrapping: true,
+        termsAccepted: true
+      };
+      sendTestRequest(payload, "Single Expensive Item => Fraud");
+    }
+
+    // ===== MAIN FORM SUBMIT HANDLER =====
+    document.getElementById('checkoutForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const data = {
+        user: {
+          name: formData.get('name'),
+          contact: formData.get('contact'),
+        },
+        creditCard: {
+          number: formData.get('creditCard'),
+          expirationDate: formData.get('expirationDate'),
+          cvv: formData.get('cvv'),
+        },
+        userComment: formData.get('userComment'),
+        items: items,  // from our global array
+        billingAddress: {
+          street: formData.get('billingStreet'),
+          city: formData.get('billingCity'),
+          state: formData.get('billingState'),
+          zip: formData.get('billingZip'),
+          country: formData.get('billingCountry'),
+        },
+        shippingMethod: formData.get('shippingMethod'),
+        giftWrapping: formData.get('giftWrapping') === 'on',
+        termsAccepted: formData.get('terms') === 'on',
+      };
+
+      const responseDiv = document.getElementById('response');
+      try {
+        const response = await fetch(ORCHESTRATOR_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        let result = await response.json();
+
+        if (response.ok) {
+          const suggestedBooks = result.suggestedBooks.map(book => `<li>${book.title} by ${book.author}</li>`).join('');
+          let color = result.status === 'Order Approved' ? 'green' : 'red';
+          responseDiv.innerHTML = `
+            <strong>Manual Form Order status: ${result.status}</strong><br>
+            Order ID: ${result.orderId}<br>
+            ${
+              result.status === "Order Approved"
+              ? `Suggested Books:<ul class="list-disc pl-5 mt-2 space-y-1">${suggestedBooks}</ul>`
+              : ``
             }
-        });
-    </script>
+          `;
+          responseDiv.className = `mt-6 p-4 border rounded-lg bg-${color}-100 text-${color}-700`;
+        } else {
+          responseDiv.textContent = `Error: ${result.error?.message || "Unknown error"}`;
+          responseDiv.className = "mt-6 p-4 border rounded-lg bg-red-100 text-red-700";
+        }
+        responseDiv.style.display = 'block';
+        // Scroll to bottom
+        window.scrollTo(0, document.body.scrollHeight);
+
+      } catch (error) {
+        responseDiv.textContent = `Unexpected error occurred: ${error.message}`;
+        responseDiv.className = "mt-6 p-4 border rounded-lg bg-red-100 text-red-700";
+        responseDiv.style.display = 'block';
+      }
+    });
+  </script>
 </body>
 </html>
