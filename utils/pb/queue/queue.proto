@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package queue;
+
+// Request to enqueue an order in a priority queue
+message EnqueueRequest {
+  string order_id = 1;
+  double priority = 2;    // higher priority means it gets served first
+  bytes order_data = 3;   // can store a serialized JSON or custom fields
+}
+
+message EnqueueResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Request to dequeue an order
+message DequeueRequest { }
+
+message DequeueResponse {
+  bool found = 1;
+  string order_id = 2;
+  bytes order_data = 3;
+}
+
+// The queue service
+service OrderQueue {
+  rpc Enqueue(EnqueueRequest) returns (EnqueueResponse);
+  rpc Dequeue(DequeueRequest) returns (DequeueResponse);
+}
