@@ -5,8 +5,8 @@ import grpc
 import checkout_pb2 as checkout__pb2
 
 
-class FraudServiceStub(object):
-    """Fraud Service
+class VerificationServiceStub(object):
+    """Transaction Verification
     """
 
     def __init__(self, channel):
@@ -15,82 +15,62 @@ class FraudServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.CheckFraud = channel.unary_unary(
-                '/checkout.FraudService/CheckFraud',
-                request_serializer=checkout__pb2.OrderRequest.SerializeToString,
-                response_deserializer=checkout__pb2.FraudResponse.FromString,
+        self.InitOrder = channel.unary_unary(
+                '/checkout.VerificationService/InitOrder',
+                request_serializer=checkout__pb2.OrderInitRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderInitResponse.FromString,
+                )
+        self.VerifyItems = channel.unary_unary(
+                '/checkout.VerificationService/VerifyItems',
+                request_serializer=checkout__pb2.OrderEventRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderEventResponse.FromString,
+                )
+        self.VerifyUserData = channel.unary_unary(
+                '/checkout.VerificationService/VerifyUserData',
+                request_serializer=checkout__pb2.OrderEventRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderEventResponse.FromString,
+                )
+        self.VerifyCreditCard = channel.unary_unary(
+                '/checkout.VerificationService/VerifyCreditCard',
+                request_serializer=checkout__pb2.OrderEventRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderEventResponse.FromString,
+                )
+        self.ClearOrder = channel.unary_unary(
+                '/checkout.VerificationService/ClearOrder',
+                request_serializer=checkout__pb2.OrderClearRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderClearResponse.FromString,
                 )
 
 
-class FraudServiceServicer(object):
-    """Fraud Service
+class VerificationServiceServicer(object):
+    """Transaction Verification
     """
 
-    def CheckFraud(self, request, context):
+    def InitOrder(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def VerifyItems(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
-def add_FraudServiceServicer_to_server(servicer, server):
-    rpc_method_handlers = {
-            'CheckFraud': grpc.unary_unary_rpc_method_handler(
-                    servicer.CheckFraud,
-                    request_deserializer=checkout__pb2.OrderRequest.FromString,
-                    response_serializer=checkout__pb2.FraudResponse.SerializeToString,
-            ),
-    }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'checkout.FraudService', rpc_method_handlers)
-    server.add_generic_rpc_handlers((generic_handler,))
+    def VerifyUserData(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
+    def VerifyCreditCard(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
- # This class is part of an EXPERIMENTAL API.
-class FraudService(object):
-    """Fraud Service
-    """
-
-    @staticmethod
-    def CheckFraud(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/checkout.FraudService/CheckFraud',
-            checkout__pb2.OrderRequest.SerializeToString,
-            checkout__pb2.FraudResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-
-class VerificationServiceStub(object):
-    """Verification Service
-    """
-
-    def __init__(self, channel):
-        """Constructor.
-
-        Args:
-            channel: A grpc.Channel.
-        """
-        self.VerifyOrder = channel.unary_unary(
-                '/checkout.VerificationService/VerifyOrder',
-                request_serializer=checkout__pb2.OrderRequest.SerializeToString,
-                response_deserializer=checkout__pb2.VerificationResponse.FromString,
-                )
-
-
-class VerificationServiceServicer(object):
-    """Verification Service
-    """
-
-    def VerifyOrder(self, request, context):
+    def ClearOrder(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -99,10 +79,30 @@ class VerificationServiceServicer(object):
 
 def add_VerificationServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'VerifyOrder': grpc.unary_unary_rpc_method_handler(
-                    servicer.VerifyOrder,
-                    request_deserializer=checkout__pb2.OrderRequest.FromString,
-                    response_serializer=checkout__pb2.VerificationResponse.SerializeToString,
+            'InitOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.InitOrder,
+                    request_deserializer=checkout__pb2.OrderInitRequest.FromString,
+                    response_serializer=checkout__pb2.OrderInitResponse.SerializeToString,
+            ),
+            'VerifyItems': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerifyItems,
+                    request_deserializer=checkout__pb2.OrderEventRequest.FromString,
+                    response_serializer=checkout__pb2.OrderEventResponse.SerializeToString,
+            ),
+            'VerifyUserData': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerifyUserData,
+                    request_deserializer=checkout__pb2.OrderEventRequest.FromString,
+                    response_serializer=checkout__pb2.OrderEventResponse.SerializeToString,
+            ),
+            'VerifyCreditCard': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerifyCreditCard,
+                    request_deserializer=checkout__pb2.OrderEventRequest.FromString,
+                    response_serializer=checkout__pb2.OrderEventResponse.SerializeToString,
+            ),
+            'ClearOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.ClearOrder,
+                    request_deserializer=checkout__pb2.OrderClearRequest.FromString,
+                    response_serializer=checkout__pb2.OrderClearResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -112,11 +112,11 @@ def add_VerificationServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class VerificationService(object):
-    """Verification Service
+    """Transaction Verification
     """
 
     @staticmethod
-    def VerifyOrder(request,
+    def InitOrder(request,
             target,
             options=(),
             channel_credentials=None,
@@ -126,15 +126,83 @@ class VerificationService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/checkout.VerificationService/VerifyOrder',
-            checkout__pb2.OrderRequest.SerializeToString,
-            checkout__pb2.VerificationResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/checkout.VerificationService/InitOrder',
+            checkout__pb2.OrderInitRequest.SerializeToString,
+            checkout__pb2.OrderInitResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def VerifyItems(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.VerificationService/VerifyItems',
+            checkout__pb2.OrderEventRequest.SerializeToString,
+            checkout__pb2.OrderEventResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def VerifyUserData(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.VerificationService/VerifyUserData',
+            checkout__pb2.OrderEventRequest.SerializeToString,
+            checkout__pb2.OrderEventResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def VerifyCreditCard(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.VerificationService/VerifyCreditCard',
+            checkout__pb2.OrderEventRequest.SerializeToString,
+            checkout__pb2.OrderEventResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ClearOrder(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.VerificationService/ClearOrder',
+            checkout__pb2.OrderClearRequest.SerializeToString,
+            checkout__pb2.OrderClearResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
 
-class SuggestionsServiceStub(object):
-    """Suggestions Service
+class FraudServiceStub(object):
+    """Fraud Detection
     """
 
     def __init__(self, channel):
@@ -143,18 +211,203 @@ class SuggestionsServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.GetSuggestions = channel.unary_unary(
-                '/checkout.SuggestionsService/GetSuggestions',
-                request_serializer=checkout__pb2.OrderRequest.SerializeToString,
-                response_deserializer=checkout__pb2.SuggestionsResponse.FromString,
+        self.InitOrder = channel.unary_unary(
+                '/checkout.FraudService/InitOrder',
+                request_serializer=checkout__pb2.OrderInitRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderInitResponse.FromString,
+                )
+        self.CheckUserFraud = channel.unary_unary(
+                '/checkout.FraudService/CheckUserFraud',
+                request_serializer=checkout__pb2.OrderEventRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderEventResponse.FromString,
+                )
+        self.CheckCreditCardFraud = channel.unary_unary(
+                '/checkout.FraudService/CheckCreditCardFraud',
+                request_serializer=checkout__pb2.OrderEventRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderEventResponse.FromString,
+                )
+        self.ClearOrder = channel.unary_unary(
+                '/checkout.FraudService/ClearOrder',
+                request_serializer=checkout__pb2.OrderClearRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderClearResponse.FromString,
+                )
+
+
+class FraudServiceServicer(object):
+    """Fraud Detection
+    """
+
+    def InitOrder(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CheckUserFraud(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CheckCreditCardFraud(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ClearOrder(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_FraudServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'InitOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.InitOrder,
+                    request_deserializer=checkout__pb2.OrderInitRequest.FromString,
+                    response_serializer=checkout__pb2.OrderInitResponse.SerializeToString,
+            ),
+            'CheckUserFraud': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckUserFraud,
+                    request_deserializer=checkout__pb2.OrderEventRequest.FromString,
+                    response_serializer=checkout__pb2.OrderEventResponse.SerializeToString,
+            ),
+            'CheckCreditCardFraud': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckCreditCardFraud,
+                    request_deserializer=checkout__pb2.OrderEventRequest.FromString,
+                    response_serializer=checkout__pb2.OrderEventResponse.SerializeToString,
+            ),
+            'ClearOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.ClearOrder,
+                    request_deserializer=checkout__pb2.OrderClearRequest.FromString,
+                    response_serializer=checkout__pb2.OrderClearResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'checkout.FraudService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+
+
+ # This class is part of an EXPERIMENTAL API.
+class FraudService(object):
+    """Fraud Detection
+    """
+
+    @staticmethod
+    def InitOrder(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.FraudService/InitOrder',
+            checkout__pb2.OrderInitRequest.SerializeToString,
+            checkout__pb2.OrderInitResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def CheckUserFraud(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.FraudService/CheckUserFraud',
+            checkout__pb2.OrderEventRequest.SerializeToString,
+            checkout__pb2.OrderEventResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def CheckCreditCardFraud(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.FraudService/CheckCreditCardFraud',
+            checkout__pb2.OrderEventRequest.SerializeToString,
+            checkout__pb2.OrderEventResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ClearOrder(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.FraudService/ClearOrder',
+            checkout__pb2.OrderClearRequest.SerializeToString,
+            checkout__pb2.OrderClearResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+
+class SuggestionsServiceStub(object):
+    """Suggestions
+    """
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.InitOrder = channel.unary_unary(
+                '/checkout.SuggestionsService/InitOrder',
+                request_serializer=checkout__pb2.OrderInitRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderInitResponse.FromString,
+                )
+        self.GenerateSuggestions = channel.unary_unary(
+                '/checkout.SuggestionsService/GenerateSuggestions',
+                request_serializer=checkout__pb2.OrderEventRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderEventResponse.FromString,
+                )
+        self.ClearOrder = channel.unary_unary(
+                '/checkout.SuggestionsService/ClearOrder',
+                request_serializer=checkout__pb2.OrderClearRequest.SerializeToString,
+                response_deserializer=checkout__pb2.OrderClearResponse.FromString,
                 )
 
 
 class SuggestionsServiceServicer(object):
-    """Suggestions Service
+    """Suggestions
     """
 
-    def GetSuggestions(self, request, context):
+    def InitOrder(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GenerateSuggestions(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ClearOrder(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -163,10 +416,20 @@ class SuggestionsServiceServicer(object):
 
 def add_SuggestionsServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'GetSuggestions': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetSuggestions,
-                    request_deserializer=checkout__pb2.OrderRequest.FromString,
-                    response_serializer=checkout__pb2.SuggestionsResponse.SerializeToString,
+            'InitOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.InitOrder,
+                    request_deserializer=checkout__pb2.OrderInitRequest.FromString,
+                    response_serializer=checkout__pb2.OrderInitResponse.SerializeToString,
+            ),
+            'GenerateSuggestions': grpc.unary_unary_rpc_method_handler(
+                    servicer.GenerateSuggestions,
+                    request_deserializer=checkout__pb2.OrderEventRequest.FromString,
+                    response_serializer=checkout__pb2.OrderEventResponse.SerializeToString,
+            ),
+            'ClearOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.ClearOrder,
+                    request_deserializer=checkout__pb2.OrderClearRequest.FromString,
+                    response_serializer=checkout__pb2.OrderClearResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -176,11 +439,11 @@ def add_SuggestionsServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class SuggestionsService(object):
-    """Suggestions Service
+    """Suggestions
     """
 
     @staticmethod
-    def GetSuggestions(request,
+    def InitOrder(request,
             target,
             options=(),
             channel_credentials=None,
@@ -190,8 +453,42 @@ class SuggestionsService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/checkout.SuggestionsService/GetSuggestions',
-            checkout__pb2.OrderRequest.SerializeToString,
-            checkout__pb2.SuggestionsResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/checkout.SuggestionsService/InitOrder',
+            checkout__pb2.OrderInitRequest.SerializeToString,
+            checkout__pb2.OrderInitResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GenerateSuggestions(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.SuggestionsService/GenerateSuggestions',
+            checkout__pb2.OrderEventRequest.SerializeToString,
+            checkout__pb2.OrderEventResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ClearOrder(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/checkout.SuggestionsService/ClearOrder',
+            checkout__pb2.OrderClearRequest.SerializeToString,
+            checkout__pb2.OrderClearResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

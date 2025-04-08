@@ -2,41 +2,53 @@ syntax = "proto3";
 
 package checkout;
 
-// Basic item info
-message Item {
+message UserData {
+  string name = 1;
+  string contact = 2;
+}
+
+message CreditCardData {
+  string number = 1;
+  string expirationDate = 2;
+  string cvv = 3;
+}
+
+message ItemData {
   string name = 1;
   int32 quantity = 2;
   double price = 3;
 }
 
-// Shared request from orchestrator to each service
-message OrderRequest {
+message OrderData {
+  UserData user = 1;
+  CreditCardData credit_card = 2;
+  repeated ItemData items = 3;
+  // Additional fields if needed
+}
+
+// For vector clocks, we’ll just treat them as repeated integers.
+message OrderInitRequest {
   string order_id = 1;
-  double total_price = 2;
-  repeated Item items = 3;
-  string user_name = 4;
-  string user_contact = 5;
-  string credit_card_number = 6;
-  string credit_card_expiration = 7;
-  string credit_card_cvv = 8;
-  // ... You can add more fields, e.g. addresses, etc.
+  OrderData data = 2;
 }
 
-// Fraud response
-message FraudResponse {
-  bool is_fraud = 1;
-  string reason = 2;
+message OrderInitResponse {
+  bool success = 1;
+  repeated int32 vc = 2;  // current vector clock
+  string message = 3;
 }
 
-// Verification response
-message VerificationResponse {
-  bool is_valid = 1;
+message OrderEventRequest {
+  string order_id = 1;
+  repeated int32 vc = 2;  // incoming vector clock
+}
+
+message OrderEventResponse {
+  bool fail = 1;
   string message = 2;
-}
-
-// Suggestions response
-message SuggestionsResponse {
-  repeated SuggestedBook suggestions = 1;
+  repeated int32 vc = 3;
+  // For suggestions, we can optionally include a list:
+  repeated SuggestedBook suggestions = 4;
 }
 
 message SuggestedBook {
@@ -45,17 +57,36 @@ message SuggestedBook {
   string author = 3;
 }
 
-// Fraud Service
-service FraudService {
-  rpc CheckFraud(OrderRequest) returns (FraudResponse);
+message OrderClearRequest {
+  string order_id = 1;
+  repeated int32 final_vc = 2;
 }
 
-// Verification Service
+message OrderClearResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Transaction Verification
 service VerificationService {
-  rpc VerifyOrder(OrderRequest) returns (VerificationResponse);
+  rpc InitOrder(OrderInitRequest) returns (OrderInitResponse);
+  rpc VerifyItems(OrderEventRequest) returns (OrderEventResponse);
+  rpc VerifyUserData(OrderEventRequest) returns (OrderEventResponse);
+  rpc VerifyCreditCard(OrderEventRequest) returns (OrderEventResponse);
+  rpc ClearOrder(OrderClearRequest) returns (OrderClearResponse);
 }
 
-// Suggestions Service
+// Fraud Detection
+service FraudService {
+  rpc InitOrder(OrderInitRequest) returns (OrderInitResponse);
+  rpc CheckUserFraud(OrderEventRequest) returns (OrderEventResponse);
+  rpc CheckCreditCardFraud(OrderEventRequest) returns (OrderEventResponse);
+  rpc ClearOrder(OrderClearRequest) returns (OrderClearResponse);
+}
+
+// Suggestions
 service SuggestionsService {
-  rpc GetSuggestions(OrderRequest) returns (SuggestionsResponse);
+  rpc InitOrder(OrderInitRequest) returns (OrderInitResponse);
+  rpc GenerateSuggestions(OrderEventRequest) returns (OrderEventResponse);
+  rpc ClearOrder(OrderClearRequest) returns (OrderClearResponse);
 }

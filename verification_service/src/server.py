@@ -1,8 +1,8 @@
 import os
 import logging
+import threading
 import grpc
 from concurrent import futures
-import re
 
 import sys
 FILE = __file__
@@ -17,42 +17,109 @@ logging.basicConfig(
     format='[VerificationService] %(asctime)s %(levelname)s: %(message)s'
 )
 
-class VerificationService(pb_grpc.VerificationServiceServicer):
-    def VerifyOrder(self, request, context):
-        """
-        Validates basic conditions:
-         - At least 1 item
-         - Credit card number is 16 digits
-         - Not empty user name/contact
-         - total_price >= 0
-        """
-        logging.info(f"Received verification request for order_id={request.order_id}, user={request.user_name}")
+class TransactionVerificationService(pb_grpc.VerificationServiceServicer):
+    def __init__(self, svc_idx=0, total_svcs=3):
+        self.svc_idx = svc_idx
+        self.total_svcs = total_svcs
+        # orders stores order_id -> {"data": pb.OrderData, "vc": [int]*total_svcs}
+        self.orders = {}
+        self.lock = threading.Lock()
 
-        # Basic validations
-        if len(request.items) == 0:
-            return pb.VerificationResponse(is_valid=False, message="No items in order")
+    def merge_and_increment(self, local_vc, incoming_vc):
+        # Merge
+        for i in range(self.total_svcs):
+            local_vc[i] = max(local_vc[i], incoming_vc[i])
+        # Increment this service's own clock index
+        local_vc[self.svc_idx] += 1
 
-        # Check credit card number format (simplified)
-        card_pattern = r"^\d{16}$"
-        if not re.match(card_pattern, request.credit_card_number):
-            return pb.VerificationResponse(is_valid=False, message="Credit card number must be 16 digits")
+    def InitOrder(self, request, context):
+        with self.lock:
+            logging.info(f"InitOrder received for {request.order_id}")
+            self.orders[request.order_id] = {
+                "data": request.data,
+                "vc": [0]*self.total_svcs
+            }
+            vc_snapshot = self.orders[request.order_id]["vc"]
+        return pb.OrderInitResponse(success=True, vc=vc_snapshot, message="Init OK")
 
-        if not request.user_name or not request.user_contact:
-            return pb.VerificationResponse(is_valid=False, message="User name or contact is missing")
+    def VerifyItems(self, request, context):
+        with self.lock:
+            entry = self.orders.get(request.order_id)
+            if not entry:
+                context.set_details("Order not found")
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+                return pb.OrderEventResponse(fail=True, vc=[], message="No order")
 
-        if request.total_price < 0:
-            return pb.VerificationResponse(is_valid=False, message="Total price cannot be negative")
+            self.merge_and_increment(entry["vc"], request.vc)
+            logging.info(f"VerifyItems for {request.order_id}, VC: {entry['vc']}")
+            if len(entry["data"].items) == 0:
+                return pb.OrderEventResponse(
+                    fail=True,
+                    message="No items in order",
+                    vc=entry["vc"]
+                )
+            return pb.OrderEventResponse(
+                fail=False,
+                message="Items verified",
+                vc=entry["vc"]
+            )
 
-        logging.info("Verification passed.")
-        return pb.VerificationResponse(is_valid=True, message="All checks passed")
+    def VerifyUserData(self, request, context):
+        with self.lock:
+            entry = self.orders.get(request.order_id)
+            if not entry:
+                return pb.OrderEventResponse(fail=True, vc=[], message="Order not found")
+
+            self.merge_and_increment(entry["vc"], request.vc)
+            logging.info(f"VerifyUserData for {request.order_id}, VC: {entry['vc']}")
+            user = entry["data"].user
+            if not user.name or not user.contact:
+                return pb.OrderEventResponse(
+                    fail=True,
+                    message="User data missing",
+                    vc=entry["vc"]
+                )
+            return pb.OrderEventResponse(
+                fail=False,
+                message="User data verified",
+                vc=entry["vc"]
+            )
+
+    def VerifyCreditCard(self, request, context):
+        with self.lock:
+            entry = self.orders.get(request.order_id)
+            self.merge_and_increment(entry["vc"], request.vc)
+            cc = entry["data"].credit_card
+            logging.info(f"VerifyCreditCard for {request.order_id}, VC: {entry['vc']}")
+            # Dummy check: length 16 => pass
+            if not cc.number or len(cc.number) != 16:
+                return pb.OrderEventResponse(fail=True, message="Invalid CC", vc=entry["vc"])
+            return pb.OrderEventResponse(fail=False, message="Credit card OK", vc=entry["vc"])
+
+    def ClearOrder(self, request, context):
+        with self.lock:
+            entry = self.orders.get(request.order_id)
+            if not entry:
+                return pb.OrderClearResponse(success=False, message="Not found")
+
+            local_vc = entry["vc"]
+            final_vc = request.final_vc
+
+            # Check that local_vc[i] <= final_vc[i] for all i
+            if all(local_vc[i] <= final_vc[i] for i in range(self.total_svcs)):
+                del self.orders[request.order_id]
+                logging.info(f"Cleared order {request.order_id}")
+                return pb.OrderClearResponse(success=True, message="Cleared")
+            else:
+                return pb.OrderClearResponse(success=False, message="Vector clock mismatch")
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    pb_grpc.add_VerificationServiceServicer_to_server(VerificationService(), server)
-    port = os.getenv("VERIFICATION_SERVICE_PORT", "50052")
-    server.add_insecure_port(f"[::]:{port}")
+    pb_grpc.add_VerificationServiceServicer_to_server(TransactionVerificationService(), server)
+    port = os.getenv("VERIF_SERVICE_PORT", "50052")
+    server.add_insecure_port(f"[::]:" + port)
+    logging.info(f"Verification Service listening on {port}")
     server.start()
-    logging.info(f"Verification Service is listening on port {port}")
     server.wait_for_termination()
 
 if __name__ == '__main__':

@@ -14,29 +14,39 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x63heckout.proto\x12\x08\x63heckout\"5\n\x04Item\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x10\n\x08quantity\x18\x02 \x01(\x05\x12\r\n\x05price\x18\x03 \x01(\x01\"\xd2\x01\n\x0cOrderRequest\x12\x10\n\x08order_id\x18\x01 \x01(\t\x12\x13\n\x0btotal_price\x18\x02 \x01(\x01\x12\x1d\n\x05items\x18\x03 \x03(\x0b\x32\x0e.checkout.Item\x12\x11\n\tuser_name\x18\x04 \x01(\t\x12\x14\n\x0cuser_contact\x18\x05 \x01(\t\x12\x1a\n\x12\x63redit_card_number\x18\x06 \x01(\t\x12\x1e\n\x16\x63redit_card_expiration\x18\x07 \x01(\t\x12\x17\n\x0f\x63redit_card_cvv\x18\x08 \x01(\t\"1\n\rFraudResponse\x12\x10\n\x08is_fraud\x18\x01 \x01(\x08\x12\x0e\n\x06reason\x18\x02 \x01(\t\"9\n\x14VerificationResponse\x12\x10\n\x08is_valid\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"C\n\x13SuggestionsResponse\x12,\n\x0bsuggestions\x18\x01 \x03(\x0b\x32\x17.checkout.SuggestedBook\"?\n\rSuggestedBook\x12\x0f\n\x07\x62ook_id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06\x61uthor\x18\x03 \x01(\t2M\n\x0c\x46raudService\x12=\n\nCheckFraud\x12\x16.checkout.OrderRequest\x1a\x17.checkout.FraudResponse2\\\n\x13VerificationService\x12\x45\n\x0bVerifyOrder\x12\x16.checkout.OrderRequest\x1a\x1e.checkout.VerificationResponse2]\n\x12SuggestionsService\x12G\n\x0eGetSuggestions\x12\x16.checkout.OrderRequest\x1a\x1d.checkout.SuggestionsResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x63heckout.proto\x12\x08\x63heckout\")\n\x08UserData\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontact\x18\x02 \x01(\t\"E\n\x0e\x43reditCardData\x12\x0e\n\x06number\x18\x01 \x01(\t\x12\x16\n\x0e\x65xpirationDate\x18\x02 \x01(\t\x12\x0b\n\x03\x63vv\x18\x03 \x01(\t\"9\n\x08ItemData\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x10\n\x08quantity\x18\x02 \x01(\x05\x12\r\n\x05price\x18\x03 \x01(\x01\"\x7f\n\tOrderData\x12 \n\x04user\x18\x01 \x01(\x0b\x32\x12.checkout.UserData\x12-\n\x0b\x63redit_card\x18\x02 \x01(\x0b\x32\x18.checkout.CreditCardData\x12!\n\x05items\x18\x03 \x03(\x0b\x32\x12.checkout.ItemData\"G\n\x10OrderInitRequest\x12\x10\n\x08order_id\x18\x01 \x01(\t\x12!\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x13.checkout.OrderData\"A\n\x11OrderInitResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\n\n\x02vc\x18\x02 \x03(\x05\x12\x0f\n\x07message\x18\x03 \x01(\t\"1\n\x11OrderEventRequest\x12\x10\n\x08order_id\x18\x01 \x01(\t\x12\n\n\x02vc\x18\x02 \x03(\x05\"m\n\x12OrderEventResponse\x12\x0c\n\x04\x66\x61il\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\n\n\x02vc\x18\x03 \x03(\x05\x12,\n\x0bsuggestions\x18\x04 \x03(\x0b\x32\x17.checkout.SuggestedBook\"?\n\rSuggestedBook\x12\x0f\n\x07\x62ook_id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06\x61uthor\x18\x03 \x01(\t\"7\n\x11OrderClearRequest\x12\x10\n\x08order_id\x18\x01 \x01(\t\x12\x10\n\x08\x66inal_vc\x18\x02 \x03(\x05\"6\n\x12OrderClearResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2\x8a\x03\n\x13VerificationService\x12\x44\n\tInitOrder\x12\x1a.checkout.OrderInitRequest\x1a\x1b.checkout.OrderInitResponse\x12H\n\x0bVerifyItems\x12\x1b.checkout.OrderEventRequest\x1a\x1c.checkout.OrderEventResponse\x12K\n\x0eVerifyUserData\x12\x1b.checkout.OrderEventRequest\x1a\x1c.checkout.OrderEventResponse\x12M\n\x10VerifyCreditCard\x12\x1b.checkout.OrderEventRequest\x1a\x1c.checkout.OrderEventResponse\x12G\n\nClearOrder\x12\x1b.checkout.OrderClearRequest\x1a\x1c.checkout.OrderClearResponse2\xbd\x02\n\x0c\x46raudService\x12\x44\n\tInitOrder\x12\x1a.checkout.OrderInitRequest\x1a\x1b.checkout.OrderInitResponse\x12K\n\x0e\x43heckUserFraud\x12\x1b.checkout.OrderEventRequest\x1a\x1c.checkout.OrderEventResponse\x12Q\n\x14\x43heckCreditCardFraud\x12\x1b.checkout.OrderEventRequest\x1a\x1c.checkout.OrderEventResponse\x12G\n\nClearOrder\x12\x1b.checkout.OrderClearRequest\x1a\x1c.checkout.OrderClearResponse2\xf5\x01\n\x12SuggestionsService\x12\x44\n\tInitOrder\x12\x1a.checkout.OrderInitRequest\x1a\x1b.checkout.OrderInitResponse\x12P\n\x13GenerateSuggestions\x12\x1b.checkout.OrderEventRequest\x1a\x1c.checkout.OrderEventResponse\x12G\n\nClearOrder\x12\x1b.checkout.OrderClearRequest\x1a\x1c.checkout.OrderClearResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'checkout_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
-  _globals['_ITEM']._serialized_start=28
-  _globals['_ITEM']._serialized_end=81
-  _globals['_ORDERREQUEST']._serialized_start=84
-  _globals['_ORDERREQUEST']._serialized_end=294
-  _globals['_FRAUDRESPONSE']._serialized_start=296
-  _globals['_FRAUDRESPONSE']._serialized_end=345
-  _globals['_VERIFICATIONRESPONSE']._serialized_start=347
-  _globals['_VERIFICATIONRESPONSE']._serialized_end=404
-  _globals['_SUGGESTIONSRESPONSE']._serialized_start=406
-  _globals['_SUGGESTIONSRESPONSE']._serialized_end=473
-  _globals['_SUGGESTEDBOOK']._serialized_start=475
-  _globals['_SUGGESTEDBOOK']._serialized_end=538
-  _globals['_FRAUDSERVICE']._serialized_start=540
-  _globals['_FRAUDSERVICE']._serialized_end=617
-  _globals['_VERIFICATIONSERVICE']._serialized_start=619
-  _globals['_VERIFICATIONSERVICE']._serialized_end=711
-  _globals['_SUGGESTIONSSERVICE']._serialized_start=713
-  _globals['_SUGGESTIONSSERVICE']._serialized_end=806
+  _globals['_USERDATA']._serialized_start=28
+  _globals['_USERDATA']._serialized_end=69
+  _globals['_CREDITCARDDATA']._serialized_start=71
+  _globals['_CREDITCARDDATA']._serialized_end=140
+  _globals['_ITEMDATA']._serialized_start=142
+  _globals['_ITEMDATA']._serialized_end=199
+  _globals['_ORDERDATA']._serialized_start=201
+  _globals['_ORDERDATA']._serialized_end=328
+  _globals['_ORDERINITREQUEST']._serialized_start=330
+  _globals['_ORDERINITREQUEST']._serialized_end=401
+  _globals['_ORDERINITRESPONSE']._serialized_start=403
+  _globals['_ORDERINITRESPONSE']._serialized_end=468
+  _globals['_ORDEREVENTREQUEST']._serialized_start=470
+  _globals['_ORDEREVENTREQUEST']._serialized_end=519
+  _globals['_ORDEREVENTRESPONSE']._serialized_start=521
+  _globals['_ORDEREVENTRESPONSE']._serialized_end=630
+  _globals['_SUGGESTEDBOOK']._serialized_start=632
+  _globals['_SUGGESTEDBOOK']._serialized_end=695
+  _globals['_ORDERCLEARREQUEST']._serialized_start=697
+  _globals['_ORDERCLEARREQUEST']._serialized_end=752
+  _globals['_ORDERCLEARRESPONSE']._serialized_start=754
+  _globals['_ORDERCLEARRESPONSE']._serialized_end=808
+  _globals['_VERIFICATIONSERVICE']._serialized_start=811
+  _globals['_VERIFICATIONSERVICE']._serialized_end=1205
+  _globals['_FRAUDSERVICE']._serialized_start=1208
+  _globals['_FRAUDSERVICE']._serialized_end=1525
+  _globals['_SUGGESTIONSSERVICE']._serialized_start=1528
+  _globals['_SUGGESTIONSSERVICE']._serialized_end=1773
 # @@protoc_insertion_point(module_scope)
