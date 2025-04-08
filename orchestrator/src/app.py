@@ -22,6 +22,7 @@ import queue_pb2 as qp
 import queue_pb2_grpc as qp_grpc
 
 app = Flask(__name__)
+CORS(app)
 logging.basicConfig(
     level=logging.INFO,
     format='[Orchestrator] %(asctime)s %(levelname)s: %(message)s'
@@ -132,7 +133,7 @@ def checkout_extended():
         clear_all(order_id, r_f.vc)
         return jsonify({"orderId": order_id, "status": "Order Rejected", "reason": r_f.message}), 400
 
-    final_vc = r_f.vc
+    final_vc = list(r_f.vc)
 
     # 7) If we reach this point => everything is valid => broadcast Clear OR after we enqueue
     # In some flows, we might only Clear after the queue-based execution is done, but for now, we can do it immediately:
