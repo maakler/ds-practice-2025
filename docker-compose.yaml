@@ -24,7 +24,8 @@ services:
       dockerfile: ./orchestrator/Dockerfile
     ports:
       # Expose port 8081 on the host, and map port 5000 of the container to port 8081 on the host
-      - 8081:5000
+      #- 8081:5000
+      - "8081:8081"
     environment:
       # Pass the environment variables to the container
       # The PYTHONUNBUFFERED environment variable ensures that the output from the application is logged to the console
