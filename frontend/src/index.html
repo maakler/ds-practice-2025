@@ -98,6 +98,7 @@
         <h2 class="text-xl font-bold text-gray-800 mb-4">Test Scenarios</h2>
         <p class="text-sm text-gray-600 mb-4">Click a scenario button to send a specific request (with edge cases) to
         <code>http://localhost:8081/checkout_extended</code> and see the request/response below.</p>
+        <code>http://172.18.0.2:8081/checkout_extended</code> and see the request/response below.</p>
 
         <!-- Buttons for different scenarios -->
         <div class="grid grid-cols-2 gap-4">
@@ -125,6 +126,15 @@
 
         <!-- Display the request and response for test scenarios -->
         <div id="testResponse" class="mt-6 p-4 border rounded-lg hidden"></div>
+
+
+        <button class="bg-purple-200 p-3 rounded hover:bg-purple-300"
+                onclick="runDemoFlow()">
+            Run Vector Clock Demo
+        </button>
+        <div id="demoResponse" class="mt-4 p-4 border rounded-lg hidden"></div>
+
+
     </div>
 
 
@@ -132,6 +142,7 @@
         // The orchestrator endpoint
         // const CHECKOUT_URL = 'http://172.18.0.2:8081/checkout_extended';
         const CHECKOUT_URL = 'http://localhost:8081/checkout_extended';
+        const CHECKOUT_URL = 'http://172.18.0.2:8081/checkout_extended';
 
         // Items for the normal form
         const items = [
@@ -291,6 +302,38 @@
         /* ------------------------------------------------------------------
          * Test Runner
          * ------------------------------------------------------------------ */
+        const DEMO_URL = 'http://172.18.0.2:8081/run_demo'; // Or wherever your orchestrator is accessible
+
+        async function runDemoFlow() {
+            const demoRespDiv = document.getElementById('demoResponse');
+            demoRespDiv.innerHTML = "<em>Running vector clock demo...</em>";
+            demoRespDiv.style.display = 'block';
+
+            try {
+                const res = await fetch(DEMO_URL, { method: 'GET' });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    demoRespDiv.innerHTML = `Error: ${JSON.stringify(data)}`;
+                    demoRespDiv.className = "p-4 border rounded-lg bg-red-100 text-red-700";
+                    return;
+                }
+
+                // Format logs
+                const logList = data.logs.map(line => `<li>${line}</li>`).join('');
+
+                demoRespDiv.innerHTML = `
+                    <strong>Demo completed for orderId:</strong> ${data.orderId}<br>
+                    <strong>Final VC:</strong> ${JSON.stringify(data.finalVC)}<br>
+                    <strong>Logs:</strong>
+                    <ul class="list-disc pl-5">${logList}</ul>
+                `;
+                demoRespDiv.className = "p-4 border rounded-lg bg-green-50 text-green-700";
+            } catch (err) {
+                demoRespDiv.innerHTML = `Error calling run_demo: ${err.message}`;
+                demoRespDiv.className = "p-4 border rounded-lg bg-red-100 text-red-700";
+            }
+        }
 
         async function runTestScenario(scenarioName, requestData) {
             // We show the request and then do a fetch

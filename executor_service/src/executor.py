@@ -57,6 +57,7 @@ class Executor:
     def __init__(self, executor_id, known_ids, queue_stub):
         self.executor_id = executor_id
         self.known_ids = sorted(known_ids)
+        self.known_ids = sorted(known_ids)
         self.queue_stub = queue_stub
         self.is_leader = False
         self.leader_id = None
@@ -211,6 +212,7 @@ class Executor:
     def run_main_loop(self):
         while self.running:
             if self.leader_id is None:
+                logging.info("Waiting for leader election to complete", extra={'executor_id': self.executor_id})
                 time.sleep(1)
                 continue
             if self.is_leader:
