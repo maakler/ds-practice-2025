@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package election;
+
+service Election {
+    rpc ElectionMessage (ElectionRequest) returns (Empty) {}
+}
+
+message ElectionRequest {
+    repeated int32 ids = 1;
+    int32 leader_id = 2;
+}
+
+message Empty {}

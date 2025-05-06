@@ -12,4 +12,5 @@ COPY ./executor_service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set the command to run the container
-CMD python utils/other/hotreload.py "executor_service/src/executor.py"
+CMD ["python", "/app/executor_service/src/executor.py"]
+#CMD python utils/other/hotreload.py "executor_service/src/executor.py"

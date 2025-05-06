@@ -1,4 +1,4 @@
-version: '3'
+#version: '3'
 services:
  
   frontend:
@@ -115,6 +115,10 @@ services:
     volumes:
       - ./utils:/app/utils
       - ./executor_service/src:/app/executor_service/src
+    ports:
+      - "5001:5001"
+    mem_limit: 3072m
+    mem_reservation: 1536m
 
   executor_2:
     build:
@@ -129,6 +133,10 @@ services:
     volumes:
       - ./utils:/app/utils
       - ./executor_service/src:/app/executor_service/src
+    ports:
+      - "5002:5002"
+    mem_limit: 3072m
+    mem_reservation: 1536m
 
   executor_3:
     build:
@@ -143,5 +151,9 @@ services:
     volumes:
       - ./utils:/app/utils
       - ./executor_service/src:/app/executor_service/src
+    ports:
+      - "5003:5003"
+    mem_limit: 3072m
+    mem_reservation: 1536m
 
 
