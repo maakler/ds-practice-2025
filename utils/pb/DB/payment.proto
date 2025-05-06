@@ -1,0 +1,15 @@
+syntax = "proto3";
+package payment;
+
+service Payment {
+  rpc Prepare (PrepareReq) returns (PrepareResp);
+  rpc Commit  (CommitReq)  returns (CommitResp);
+  rpc Abort   (AbortReq)   returns (AbortResp);
+}
+
+message PrepareReq { string order_id = 1; double amount = 2; }
+message PrepareResp{ bool ready  = 1; }
+message CommitReq  { string order_id = 1; }
+message CommitResp { bool success = 1; }
+message AbortReq   { string order_id = 1; }
+message AbortResp  { bool aborted = 1; }

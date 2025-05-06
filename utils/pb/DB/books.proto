@@ -1,0 +1,28 @@
+syntax = "proto3";
+package books;
+
+/* ----------  simple KV API  ---------- */
+service BooksDB {
+  rpc Read  (ReadReq)  returns (ReadResp);
+  rpc Write (WriteReq) returns (WriteResp);
+
+  /* -----  2‑PC participant RPCs  ----- */
+  rpc Prepare(PrepareReq) returns (PrepareResp);
+  rpc Commit (CommitReq)  returns (CommitResp);
+  rpc Abort  (AbortReq)   returns (AbortResp);
+}
+
+/* -----------  data types  ------------ */
+message ReadReq { string title = 1; }
+message ReadResp{ int32  stock = 1; }
+
+message WriteReq { string title = 1; int32 new_stock = 2; }
+message WriteResp{ bool   success = 1; }
+
+/* ----  Two‑phase‑commit messages  ---- */
+message PrepareReq { string order_id = 1; repeated WriteReq staged = 2; }
+message PrepareResp{ bool ready = 1; }          // vote‑yes / vote‑no
+message CommitReq  { string order_id = 1; }
+message CommitResp { bool success = 1; }
+message AbortReq   { string order_id = 1; }
+message AbortResp  { bool aborted = 1; }
