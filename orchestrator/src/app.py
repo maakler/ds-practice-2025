@@ -21,6 +21,8 @@ sys.path.insert(0, PROTO_DIR)
 import queue_pb2 as qp
 import queue_pb2_grpc as qp_grpc
 
+
+
 app = Flask(__name__)
 CORS(app)
 logging.basicConfig(
@@ -177,6 +179,7 @@ def _clear_all(order_id, final_vc, logs):
     except:
         logs.append("[ClearOrder] sugg => error")
 
+
 @app.route('/checkout_extended', methods=['POST'])
 def checkout_extended():
     data = request.get_json() or {}
@@ -191,9 +194,15 @@ def checkout_extended():
     cc = pb.CreditCardData(number=data.get("creditCard", {}).get("number", ""),
                            expirationDate=data.get("creditCard", {}).get("expirationDate", ""),
                            cvv=data.get("creditCard", {}).get("cvv", ""))
+
     items = []
     for it in data.get("items", []):
-        items.append(pb.ItemData(name=it["name"], quantity=it["quantity"], price=it.get("price", 0.0)))
+        item_name = it.get("name") or it.get("title") or "Unknown"
+        qty       = int(it.get("quantity", 0))
+        price     = float(it.get("price", 0.0))
+        items.append(pb.ItemData(name=item_name, quantity=qty, price=price))
+
+
     order_data = pb.OrderData(user=user, credit_card=cc, items=items)
 
     init_req = pb.OrderInitRequest(order_id=order_id, data=order_data)

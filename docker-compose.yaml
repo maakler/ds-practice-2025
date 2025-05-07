@@ -173,12 +173,12 @@ services:
       context: ./
       dockerfile: ./books_service/Dockerfile
     environment:
-      - ROLE=primary                # ← runs the primary‑backup logic
+      - ROLE=primary
       - BOOKS_PORT=7000
-      # comma‑separated host:port list of backups
       - BACKUPS=books_backup1:7001,books_backup2:7002
     ports:
-      - "7000:7000"                 # expose for easy local testing
+      - "7000:7000"   # gRPC  (unchanged)
+      - "7080:80"     # HTTP façade NOW EXPOSED ON HOST‑PORT 7080
     volumes:
       - ./books_service/src:/app/books_service/src
       - ./utils:/app/utils
@@ -218,7 +218,8 @@ services:
     environment:
       - PAY_PORT=7100
     ports:
-      - "7100:7100"
+      - "7100:7100"   # gRPC
+      - "7180:80"     # HTTP façade
     volumes:
       - ./payment_service/src:/app/payment_service/src
       - ./utils:/app/utils

@@ -1,15 +1,27 @@
-# Use an official Python runtime as the base image
+# ──────────────────────────────────────────────────────────────
+# base image
 FROM python:3.11
 
-# Set the working directory in the container
-# Both the utils and src folders will be mounted as volumes, please see docker-compose.yaml
+# ──────────────────────────────────────────────────────────────
+# working dir
 WORKDIR /app
 
-# Copy the requirements file to the working directory
+# ──────────────────────────────────────────────────────────────
+# copy pip requirements
 COPY ./books_service/requirements.txt .
 
-# Install the Python dependencies
+# install everything
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set the command to run the container
-CMD ["python", "/app/books_service/src/server.py"]
+# ──────────────────────────────────────────────────────────────
+# copy service code
+COPY ./books_service/src /app/books_service/src
+
+# ──────────────────────────────────────────────────────────────
+# expose gRPC port + HTTP façade port 80
+EXPOSE 7000 80
+
+# ──────────────────────────────────────────────────────────────
+# use the helper script as entrypoint
+COPY ./books_service/start.sh /app/books_service/start.sh
+ENTRYPOINT ["/app/books_service/start.sh"]

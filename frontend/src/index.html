@@ -1,444 +1,207 @@
+<!-- frontend/index.html  (2025‑05‑07) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout Page</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <title>Book‑Shop Demo Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>[x-cloak]{display:none}</style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center overflow-y-auto">
+<body class="bg-gray-100 min-h-screen overflow-y-auto">
 
-    <!-- Main Container -->
-    <div class="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md mt-6">
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Checkout Page</h1>
+<!-- ──────────────────────────────────────────────────────────
+     0.  GLOBAL ENDPOINTS – adjust only here
+────────────────────────────────────────────────────────── -->
+<script>
+const ORCH   = 'http://localhost:8081';
+const CHECKOUT = `${ORCH}/checkout_extended`;
+const DEMO_URL = `${ORCH}/run_demo`;
 
-        <!-- The Original Manual-Input Form -->
-        <form id="checkoutForm">
-            <div class="mb-6">
-                <h2 class="text-lg font-semibold text-gray-700">Items</h2>
-                <ul id="itemList" class="list-none p-0 mt-2 space-y-2">
-                    <!-- Items will be dynamically rendered here -->
-                </ul>
-            </div>
+const DB_PRIMARY = 'http://localhost:7080';
+const DB_READ  = `${DB_PRIMARY}/read`;
+const DB_WRITE = `${DB_PRIMARY}/delta`;
 
-            <div class="mb-4">
-                <label for="name" class="block text-sm font-medium text-gray-700">Name:</label>
-                <input type="text" id="name" name="name" value="John Doe" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="contact" class="block text-sm font-medium text-gray-700">Contact:</label>
-                <input type="email" id="contact" name="contact" value="john.doe@example.com" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="creditCard" class="block text-sm font-medium text-gray-700">Credit Card Number:</label>
-                <input type="text" id="creditCard" name="creditCard" value="4111111111111111" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="expirationDate" class="block text-sm font-medium text-gray-700">Expiration Date:</label>
-                <input type="text" id="expirationDate" name="expirationDate" value="12/25" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="cvv" class="block text-sm font-medium text-gray-700">CVV:</label>
-                <input type="text" id="cvv" name="cvv" value="123" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="userComment" class="block text-sm font-medium text-gray-700">Comment:</label>
-                <textarea id="userComment" name="userComment"
-                          class="w-full border border-gray-300 rounded-lg p-2 mt-1">Please handle with care.</textarea>
-            </div>
-            <div class="mb-4">
-                <label for="billingAddress" class="block text-sm font-medium text-gray-700">Billing Address:</label>
-                <input type="text" id="billingStreet" name="billingStreet" value="123 Main St" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                <input type="text" id="billingCity" name="billingCity" value="Springfield" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                <input type="text" id="billingState" name="billingState" value="IL" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                <input type="text" id="billingZip" name="billingZip" value="66666" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                <input type="text" id="billingCountry" name="billingCountry" value="USA" required
-                       class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div class="mb-4">
-                <label for="shippingMethod" class="block text-sm font-medium text-gray-700">Shipping Method:</label>
-                <select id="shippingMethod" name="shippingMethod" required
-                        class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-                    <option value="Standard" selected>Standard</option>
-                    <option value="Express">Express</option>
-                    <option value="Next-Day">Next-Day</option>
-                </select>
-            </div>
-            <div class="mb-4 flex items-center">
-                <input type="checkbox" id="giftWrapping" name="giftWrapping" checked
-                       class="mr-2 border border-gray-300 rounded">
-                <label for="giftWrapping" class="text-sm font-medium text-gray-700">Gift Wrapping</label>
-            </div>
-            <div class="mb-4 flex items-center">
-                <input type="checkbox" id="terms" name="terms" checked required
-                       class="mr-2 border border-gray-300 rounded">
-                <label for="terms" class="text-sm font-medium text-gray-700">Accept Terms and Conditions</label>
-            </div>
-            <button type="submit"
-                    class="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700">
-                Submit Order
-            </button>
-        </form>
+const PAY_HOST = 'http://localhost:7180';
+const PAY_CHARGE = `${PAY_HOST}/charge`;
+const PAY_REFUND = `${PAY_HOST}/refund`;
+</script>
 
-        <!-- Response message for the manual form submission -->
-        <div id="response" class="mt-6 p-4 border rounded-lg hidden"></div>
-    </div>
+<!-- ──────────────────────────────────────────────────────────
+     1.  MANUAL CHECKOUT
+────────────────────────────────────────────────────────── -->
+<div class="m-6 mx-auto max-w-2xl bg-white p-6 rounded-lg shadow">
+  <h1 class="text-2xl font-bold text-center mb-6">Manual Checkout</h1>
 
-    <!-- Automated Test Scenarios Section -->
-    <div class="w-full max-w-2xl bg-white p-6 mt-6 mb-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Test Scenarios</h2>
-        <p class="text-sm text-gray-600 mb-4">Click a scenario button to send a specific request (with edge cases) to
+  <form id="checkoutForm" class="space-y-3">
+    <input name="name"  placeholder="Name" value="John Doe"            class="w-full input">
+    <input name="email" placeholder="Email" value="john@example.com"   class="w-full input">
+    <input name="cc"    placeholder="Credit‑Card (16d)" value="1111222233334444" class="w-full input">
+    <input name="exp"   placeholder="MM/YY" value="12/25"              class="w-full input">
+    <input name="cvv"   placeholder="CVV"   value="123"                class="w-full input">
 
-        <!-- Buttons for different scenarios -->
-        <div class="grid grid-cols-2 gap-4">
-            <button class="bg-gray-200 p-2 rounded hover:bg-gray-300"
-                    onclick="runTestScenario('Valid Minimal Order', testDataValid)">
-                Valid Minimal Order
-            </button>
-            <button class="bg-gray-200 p-2 rounded hover:bg-gray-300"
-                    onclick="runTestScenario('Large Total => Fraud', testDataFraud)">
-                Large Total => Fraud
-            </button>
-            <button class="bg-gray-200 p-2 rounded hover:bg-gray-300"
-                    onclick="runTestScenario('Invalid CC => Verification Fail', testDataInvalidCC)">
-                Invalid CC => Fail
-            </button>
-            <button class="bg-gray-200 p-2 rounded hover:bg-gray-300"
-                    onclick="runTestScenario('No Items => Verification Fail', testDataNoItems)">
-                No Items => Fail
-            </button>
-            <button class="bg-gray-200 p-2 rounded hover:bg-gray-300"
-                    onclick="runTestScenario('Missing User => 400 Bad Request', testDataMissingUser)">
-                Missing User => 400
-            </button>
-        </div>
+    <p class="font-semibold pt-2">Items in cart</p>
+    <ul class="bg-gray-50 p-3 rounded">
+      <li>Book A ×1 ($10)</li>
+      <li>Book B ×2 ($15)</li>
+    </ul>
 
-        <!-- Display the request and response for test scenarios -->
-        <div id="testResponse" class="mt-6 p-4 border rounded-lg hidden"></div>
+    <button class="btn-blue w-full">Submit</button>
+  </form>
+  <pre id="manualOut" class="hidden mt-4 bg-gray-50 p-3 rounded text-sm"></pre>
+</div>
 
+<!-- ──────────────────────────────────────────────────────────
+     2.  SCENARIO BUTTONS
+────────────────────────────────────────────────────────── -->
+<div class="m-6 mx-auto max-w-2xl bg-white p-6 rounded-lg shadow">
+  <h2 class="text-xl font-bold mb-4">Scenario Tests</h2>
 
-        <button class="bg-purple-200 p-3 rounded hover:bg-purple-300"
-                onclick="runDemoFlow()">
-            Run Vector Clock Demo
-        </button>
-        <div id="demoResponse" class="mt-4 p-4 border rounded-lg hidden"></div>
+  <div class="grid grid-cols-2 gap-3 text-sm">
+    <button class="btn-gray" onclick="scenario('Valid',dataValid)">Valid Minimal</button>
+    <button class="btn-gray" onclick="scenario('Fraud',dataFraud)">Big Total ⇒ Fraud</button>
+    <button class="btn-gray" onclick="scenario('Bad CC',dataBadCC)">Bad CC ⇒ Fail</button>
+    <button class="btn-gray" onclick="scenario('No Items',dataNoItems)">No Items ⇒ Fail</button>
+    <button class="btn-gray" onclick="scenario('400',dataNoUser)">Missing User ⇒ 400</button>
+  </div>
 
+  <pre id="scenOut" class="hidden mt-4 bg-gray-50 p-3 rounded text-sm"></pre>
+</div>
 
-    </div>
+<!-- ──────────────────────────────────────────────────────────
+     3.  ONE‑CLICK DEMO
+────────────────────────────────────────────────────────── -->
+<div class="m-6 mx-auto max-w-2xl bg-white p-6 rounded-lg shadow">
+  <h2 class="text-xl font-bold mb-3">End‑to‑End Demo (vector‑clock + 2‑PC)</h2>
+  <button class="btn-purple" onclick="runDemo()">Run Demo</button>
+  <pre id="demoOut" class="hidden mt-4 bg-gray-50 p-3 rounded text-sm"></pre>
+</div>
 
+<!-- ──────────────────────────────────────────────────────────
+     4.  BOOKS‑DB PANEL
+────────────────────────────────────────────────────────── -->
+<div class="m-6 mx-auto max-w-2xl bg-white p-6 rounded-lg shadow">
+  <h2 class="text-xl font-bold mb-4">Books DB – Stock</h2>
+  <div class="flex gap-2 mb-3">
+    <input id="titleInp" value="Distributed Systems" class="flex-1 input">
+    <button class="btn-gray" onclick="dbGet()">🔍 GET</button>
+    <button class="btn-green" onclick="dbDelta(+10)">+10</button>
+    <button class="btn-red"   onclick="dbDelta(-1)">−1</button>
+  </div>
+  <pre id="dbOut" class="hidden bg-gray-50 p-3 rounded text-sm"></pre>
+</div>
 
-    <script>
-        // The orchestrator endpoint
-        // const CHECKOUT_URL = 'http://172.18.0.2:8081/checkout_extended';
-        // const CHECKOUT_URL = 'http://localhost:8081/checkout_extended';
-        const CHECKOUT_URL = 'http://172.18.0.3:8081/checkout_extended';
+<!-- ──────────────────────────────────────────────────────────
+     5.  PAYMENT PANEL
+────────────────────────────────────────────────────────── -->
+<div class="m-6 mx-auto max-w-2xl bg-white p-6 rounded-lg shadow">
+  <h2 class="text-xl font-bold mb-4">Payment Stub</h2>
+  <div class="flex gap-2 mb-3">
+    <input id="payOrder" value="demo‑order" class="flex-1 input">
+    <input id="payAmt"   value="99.99"      class="w-28 input">
+    <button class="btn-green" onclick="pay('charge')">Charge</button>
+    <button class="btn-red"   onclick="pay('refund')">Refund</button>
+  </div>
+  <pre id="payOut" class="hidden bg-gray-50 p-3 rounded text-sm"></pre>
+</div>
 
-        // Items for the normal form
-        const items = [
-            { name: "Book A", quantity: 1, price: 10.00 },
-            { name: "Book B", quantity: 2, price: 15.00 }
-        ];
+<!-- ──────────────────────────────────────────────────────────
+     6.  MINIMAL TAILWIND UTILS
+────────────────────────────────────────────────────────── -->
+<style>
+.input{border:1px solid #d1d5db;border-radius:.5rem;padding:.45rem}
+.btn-blue  {background:#2563eb;color:#fff;padding:.45rem 1rem;border-radius:.5rem}
+.btn-gray  {background:#e5e7eb;padding:.45rem;border-radius:.5rem}
+.btn-purple{background:#c4b5fd;padding:.55rem 1.2rem;border-radius:.5rem}
+.btn-green {background:#86efac;padding:.35rem .8rem;border-radius:.4rem}
+.btn-red   {background:#fecaca;padding:.35rem .8rem;border-radius:.4rem}
+pre{white-space:pre-wrap;word-break:break-word}
+</style>
 
-        // Render items in the original form
-        const itemListElement = document.getElementById('itemList');
-        items.forEach(item => {
-            const li = document.createElement('li');
-            li.textContent = `${item.name} - Quantity: ${item.quantity}`;
-            li.className = "bg-gray-100 p-3 rounded-lg";
-            itemListElement.appendChild(li);
-        });
+<!-- ──────────────────────────────────────────────────────────
+     7.  JAVASCRIPT
+────────────────────────────────────────────────────────── -->
+<script>
+/* ─── helper ─────────────────────────────────────────────── */
+function show(id,msg,ok=true){
+  const e=document.getElementById(id);
+  e.textContent = msg;
+  e.classList.remove('hidden');
+  e.style.background = ok ? '#dcfce7' : '#fee2e2';
+}
 
-        // Manual form submission
-        document.getElementById('checkoutForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
+/* ─── 1. manual checkout ─────────────────────────────────── */
+document.getElementById('checkoutForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();
+  const body={
+    user:{name:ev.target.name.value,contact:ev.target.email.value},
+    creditCard:{number:ev.target.cc.value,expirationDate:ev.target.exp.value,cvv:ev.target.cvv.value},
+    items:[{name:"Book A",quantity:1,price:10},{name:"Book B",quantity:2,price:15}],
+    total:40
+  };
+  show('manualOut','⏳ sending …');
+  try{
+    const resp=await fetch(CHECKOUT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const json=await resp.json().catch(()=>({raw:'non‑json'}));
+    show('manualOut',JSON.stringify(json,null,2),resp.ok);
+  }catch(e){show('manualOut',e,false);}
+});
 
-            const formData = new FormData(event.target);
-            const data = {
-                user: {
-                    name: formData.get('name'),
-                    contact: formData.get('contact'),
-                },
-                creditCard: {
-                    number: formData.get('creditCard'),
-                    expirationDate: formData.get('expirationDate'),
-                    cvv: formData.get('cvv'),
-                },
-                userComment: formData.get('userComment'),
-                items: items,
-                billingAddress: {
-                    street: formData.get('billingStreet'),
-                    city: formData.get('billingCity'),
-                    state: formData.get('billingState'),
-                    zip: formData.get('billingZip'),
-                    country: formData.get('billingCountry'),
-                },
-                shippingMethod: formData.get('shippingMethod'),
-                giftWrapping: formData.get('giftWrapping') === 'on',
-                termsAccepted: formData.get('terms') === 'on',
-            };
+/* ─── 2.  scenario buttons  ──────────────────────────────── */
+function scenario(label,data){
+  show('scenOut','⏳  '+label+' …');
+  fetch(CHECKOUT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+   .then(resp=>resp.json().then(j=>show('scenOut',`${label} ⇒ ${resp.status}\n`+JSON.stringify(j,null,2),resp.ok)))
+   .catch(e=>show('scenOut',e,false));
+}
+const dataValid  ={user:{name:"Alice",contact:"a@x"},creditCard:{number:"1111222233334444",expirationDate:"12/25",cvv:"123"},items:[{name:"Book",quantity:1,price:50}],total:50};
+const dataFraud  ={user:{name:"Bob",contact:"b@x"},creditCard:{number:"4000000000000002",expirationDate:"09/26",cvv:"999"},items:[{name:"Expensive",quantity:1,price:1200}],total:1200};
+const dataBadCC  ={user:{name:"C",contact:"c@x"},creditCard:{number:"1234567890",expirationDate:"01/28",cvv:"987"},items:[{name:"Book",quantity:1,price:20}],total:20};
+const dataNoItems={user:{name:"D",contact:"d@x"},creditCard:{number:"9999999999999999",expirationDate:"12/30",cvv:"321"},items:[],total:0};
+const dataNoUser ={creditCard:{number:"8888888888888888",expirationDate:"10/25",cvv:"111"},items:[{name:"Book",quantity:2,price:15}],total:30};
 
-            // Perform fetch
-            handleFetch(CHECKOUT_URL, data, 'response');
-        });
+/* ─── 3.  demo endpoint  ─────────────────────────────────── */
+function runDemo(){
+  show('demoOut','⏳ running …');
+  fetch(DEMO_URL)
+    .then(resp=>resp.json().then(j=>show('demoOut',JSON.stringify(j,null,2),resp.ok)))
+    .catch(e=>show('demoOut',e,false));
+}
 
+/* ─── 4.  Books‑DB helpers  ──────────────────────────────── */
+async function dbGet(){
+  const title=document.getElementById('titleInp').value;
+  show('dbOut','⏳');
+  try{
+    const json = await fetch(DB_READ+'?title='+encodeURIComponent(title)).then(r=>r.json());
+    show('dbOut',`${title}  stock = ${json.stock}`,true);
+  }catch(e){show('dbOut',e,false);}
+}
+async function dbDelta(delta){
+  const title=document.getElementById('titleInp').value;
+  show('dbOut','⏳');
+  try{
+    const resp=await fetch(DB_WRITE,{method:'POST',headers:{'Content-Type':'application/json'},
+                                     body:JSON.stringify({title,delta})});
+    const json=await resp.json();
+    const ok  = resp.ok && json.success;
+    show('dbOut',`→  ${json.title}\nnew_stock = ${json.new_stock}`,ok);
+  }catch(e){show('dbOut',e,false);}
+}
 
-        /* ------------------------------------------------------------------
-         * Automated Test Data
-         * ------------------------------------------------------------------ */
-
-        // 1) Valid minimal order
-        const testDataValid = {
-            user: { name: "Alice", contact: "alice@example.com" },
-            creditCard: { number: "1234123412341234", expirationDate: "12/25", cvv: "123" },
-            userComment: "Just a test order",
-            items: [
-                { name: "Test Book 1", quantity: 1, price: 50.00 }
-            ],
-            billingAddress: {
-                street: "1 Tester Rd",
-                city: "Testville",
-                state: "TS",
-                zip: "00001",
-                country: "Wonderland"
-            },
-            shippingMethod: "Standard",
-            giftWrapping: false,
-            termsAccepted: true
-        };
-
-        // 2) Large total => fraud
-        // Suppose total above 1000 triggers Fraud
-        const testDataFraud = {
-            user: { name: "Bob", contact: "bob@example.com" },
-            creditCard: { number: "4000000000000002", expirationDate: "09/26", cvv: "999" },
-            userComment: "Big order to trigger fraud check",
-            items: [
-                { name: "Expensive Book", quantity: 1, price: 1200.00 }
-            ],
-            billingAddress: {
-                street: "99 Fraud Lane",
-                city: "Fraud City",
-                state: "FR",
-                zip: "99999",
-                country: "Scamland"
-            },
-            shippingMethod: "Express",
-            giftWrapping: false,
-            termsAccepted: true
-        };
-
-        // 3) Invalid CC => verification fail
-        // e.g. CC must be 16 digits, let's do only 10 digits
-        const testDataInvalidCC = {
-            user: { name: "Charlie", contact: "charlie@example.com" },
-            creditCard: { number: "1234567890", expirationDate: "01/28", cvv: "987" },
-            userComment: "Invalid CC test",
-            items: [
-                { name: "Basic Book", quantity: 1, price: 20.0 }
-            ],
-            billingAddress: {
-                street: "1 Incomplete Rd",
-                city: "Nowhere",
-                state: "XX",
-                zip: "11111",
-                country: "US"
-            },
-            shippingMethod: "Standard",
-            giftWrapping: false,
-            termsAccepted: true
-        };
-
-        // 4) No items => verification fail
-        const testDataNoItems = {
-            user: { name: "Donna", contact: "donna@example.com" },
-            creditCard: { number: "9999999999999999", expirationDate: "12/30", cvv: "321" },
-            userComment: "",
-            items: [], // empty
-            billingAddress: {
-                street: "2 NoItems Blvd",
-                city: "EmptyCart",
-                state: "EC",
-                zip: "22222",
-                country: "US"
-            },
-            shippingMethod: "Standard",
-            giftWrapping: false,
-            termsAccepted: true
-        };
-
-        // 5) Missing user => orchestrator 400
-        // The orchestrator requires user.name and user.contact
-        const testDataMissingUser = {
-            // user is completely missing
-            creditCard: { number: "8888888888888888", expirationDate: "10/25", cvv: "111" },
-            userComment: "No user info provided",
-            items: [
-                { name: "Book Something", quantity: 2, price: 15.00 }
-            ],
-            billingAddress: {
-                street: "No Name Rd",
-                city: "Test City",
-                state: "TT",
-                zip: "33333",
-                country: "TestCountry"
-            },
-            shippingMethod: "Standard",
-            giftWrapping: false,
-            termsAccepted: true
-        };
-
-
-        /* ------------------------------------------------------------------
-         * Test Runner
-         * ------------------------------------------------------------------ */
-        const DEMO_URL = 'http://172.18.0.3:8081/run_demo'; // Or wherever your orchestrator is accessible
-
-        async function runDemoFlow() {
-            const demoRespDiv = document.getElementById('demoResponse');
-            demoRespDiv.innerHTML = "<em>Running vector clock demo...</em>";
-            demoRespDiv.style.display = 'block';
-
-            try {
-                const res = await fetch(DEMO_URL, { method: 'GET' });
-                const data = await res.json();
-
-                if (!res.ok) {
-                    demoRespDiv.innerHTML = `Error: ${JSON.stringify(data)}`;
-                    demoRespDiv.className = "p-4 border rounded-lg bg-red-100 text-red-700";
-                    return;
-                }
-
-                // Format logs
-                const logList = data.logs.map(line => `<li>${line}</li>`).join('');
-
-                demoRespDiv.innerHTML = `
-                    <strong>Demo completed for orderId:</strong> ${data.orderId}<br>
-                    <strong>Final VC:</strong> ${JSON.stringify(data.finalVC)}<br>
-                    <strong>Logs:</strong>
-                    <ul class="list-disc pl-5">${logList}</ul>
-                `;
-                demoRespDiv.className = "p-4 border rounded-lg bg-green-50 text-green-700";
-            } catch (err) {
-                demoRespDiv.innerHTML = `Error calling run_demo: ${err.message}`;
-                demoRespDiv.className = "p-4 border rounded-lg bg-red-100 text-red-700";
-            }
-        }
-
-        async function runTestScenario(scenarioName, requestData) {
-            // We show the request and then do a fetch
-            const testResponseDiv = document.getElementById('testResponse');
-            testResponseDiv.style.display = 'block';
-            testResponseDiv.innerHTML = `
-              <h3 class="font-bold mb-2">Scenario: ${scenarioName}</h3>
-              <div class="mb-2">
-                <strong>Request Body:</strong>
-                <pre class="bg-gray-100 p-2 rounded">${JSON.stringify(requestData, null, 2)}</pre>
-              </div>
-              <div id="scenarioResponse" class="mt-2 p-2 border border-dashed rounded bg-gray-50 text-gray-700">
-                <em>Awaiting response...</em>
-              </div>
-            `;
-
-            try {
-                const res = await fetch(CHECKOUT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestData)
-                });
-
-                let responseBody;
-                try {
-                    responseBody = await res.json();
-                } catch {
-                    responseBody = { error: 'Non-JSON response or parse error' };
-                }
-
-                const scenarioRespDiv = document.getElementById('scenarioResponse');
-                scenarioRespDiv.innerHTML = `
-                  <strong>HTTP Status:</strong> ${res.status} ${res.statusText}<br>
-                  <strong>Response Body:</strong>
-                  <pre class="bg-white p-2 rounded text-sm">${JSON.stringify(responseBody, null, 2)}</pre>
-                `;
-                scenarioRespDiv.classList.remove('bg-red-50','text-red-700');
-                scenarioRespDiv.classList.remove('bg-green-50','text-green-700');
-
-                // Simple coloring
-                if (res.ok) {
-                    scenarioRespDiv.classList.add('bg-green-50','text-green-700');
-                } else {
-                    scenarioRespDiv.classList.add('bg-red-50','text-red-700');
-                }
-
-            } catch (err) {
-                const scenarioRespDiv = document.getElementById('scenarioResponse');
-                scenarioRespDiv.innerHTML = `<strong>Error:</strong> ${err.message}`;
-                scenarioRespDiv.classList.add('bg-red-50','text-red-700');
-            }
-        }
-
-        /* ------------------------------------------------------------------
-         * Helper for the manual form fetch
-         * ------------------------------------------------------------------ */
-        async function handleFetch(url, payload, responseDivId) {
-            const responseDiv = document.getElementById(responseDivId);
-            responseDiv.style.display = 'block';
-
-            // Show a loading message
-            responseDiv.textContent = 'Processing...';
-
-            try {
-                // It's best practice to include headers for JSON
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                });
-
-                let result;
-                try {
-                    result = await response.json();
-                } catch {
-                    result = { error: { message: 'Unable to parse JSON' } };
-                }
-
-                if (response.ok) {
-                    // success
-                    const suggestedBooks = result.suggestedBooks?.map(book => `<li>${book.title} by ${book.author}</li>`).join('') || '';
-                    responseDiv.innerHTML = `
-                        <strong>Order status: ${result.status}</strong><br>
-                        Order ID: ${result.orderId ?? 'N/A'}<br>
-                        ${result.status === "Order Approved"
-                            ? `Suggested Books:
-                                <ul class="list-disc pl-5 mt-2 space-y-1">${suggestedBooks}</ul>`
-                            : ``
-                        }
-                    `;
-                    const color = result.status === 'Order Approved' ? 'green' : 'red';
-                    responseDiv.className = `mt-6 p-4 border rounded-lg bg-${color}-100 text-${color}-700`;
-                } else {
-                    // error from server
-                    const errorMsg = result?.error?.message || JSON.stringify(result);
-                    responseDiv.textContent = `Error: ${errorMsg}`;
-                    responseDiv.className = "mt-6 p-4 border rounded-lg bg-red-100 text-red-700";
-                }
-
-                // Scroll to bottom
-                window.scrollTo(0, document.body.scrollHeight);
-
-            } catch (error) {
-                responseDiv.textContent = `Unexpected error occurred: ${error.message}`;
-                responseDiv.className = "mt-6 p-4 border rounded-lg bg-red-100 text-red-700";
-            }
-        }
-    </script>
+/* ─── 5.  payment helpers  ───────────────────────────────── */
+async function pay(kind){
+  const order=document.getElementById('payOrder').value.trim();
+  const amt  =parseFloat(document.getElementById('payAmt').value);
+  const url  = (kind==='charge') ? PAY_CHARGE : PAY_REFUND;
+  const body = (kind==='charge') ? {order,amount:amt} : {order};
+  show('payOut','⏳');
+  try{
+    const resp = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const json = await resp.json();
+    show('payOut',JSON.stringify(json,null,2),resp.ok);
+  }catch(e){show('payOut',e,false);}
+}
+</script>
 </body>
 </html>
