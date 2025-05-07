@@ -33,6 +33,9 @@ services:
       # The PYTHONFILE environment variable specifies the absolute entry point of the application
       # Check app.py in the orchestrator directory to see how this is used
       - PYTHONFILE=/app/orchestrator/src/app.py
+      - ORDER_QUEUE_HOST=order_queue:6000
+      - BOOKS_PRIMARY=books_primary:7000
+      - PAYMENT_HOST=payment:7100
     volumes:
       # Mount the utils directory in the current directory to the /app/utils directory in the container
       - ./utils:/app/utils
@@ -110,6 +113,9 @@ services:
       - EXECUTOR_ID=1
       - KNOWN_EXECUTOR_IDS=1,2,3
       - ORDER_QUEUE_HOST=order_queue:6000
+      # ↓↓↓ new
+      - BOOKS_PRIMARY=books_primary:7000
+      - PAYMENT_HOST=payment:7100
     depends_on:
       - order_queue
     volumes:
@@ -128,6 +134,8 @@ services:
       - EXECUTOR_ID=2
       - KNOWN_EXECUTOR_IDS=1,2,3
       - ORDER_QUEUE_HOST=order_queue:6000
+      - BOOKS_PRIMARY=books_primary:7000
+      - PAYMENT_HOST=payment:7100
     depends_on:
       - order_queue
     volumes:
@@ -146,6 +154,8 @@ services:
       - EXECUTOR_ID=3
       - KNOWN_EXECUTOR_IDS=1,2,3
       - ORDER_QUEUE_HOST=order_queue:6000
+      - BOOKS_PRIMARY=books_primary:7000
+      - PAYMENT_HOST=payment:7100
     depends_on:
       - order_queue
     volumes:
@@ -157,3 +167,58 @@ services:
     mem_reservation: 1536m
 
 
+  # ---------------  BOOKS DATABASE  ----------------
+  books_primary:
+    build:
+      context: ./
+      dockerfile: ./books_service/Dockerfile
+    environment:
+      - ROLE=primary                # ← runs the primary‑backup logic
+      - BOOKS_PORT=7000
+      # comma‑separated host:port list of backups
+      - BACKUPS=books_backup1:7001,books_backup2:7002
+    ports:
+      - "7000:7000"                 # expose for easy local testing
+    volumes:
+      - ./books_service/src:/app/books_service/src
+      - ./utils:/app/utils
+
+  books_backup1:
+    build:
+      context: ./
+      dockerfile: ./books_service/Dockerfile
+    environment:
+      - ROLE=backup
+      - BOOKS_PORT=7001
+    ports:
+      - "7001:7001"
+    volumes:
+      - ./books_service/src:/app/books_service/src
+      - ./utils:/app/utils
+
+  books_backup2:
+    build:
+      context: ./
+      dockerfile: ./books_service/Dockerfile
+    environment:
+      - ROLE=backup
+      - BOOKS_PORT=7002
+    ports:
+      - "7002:7002"
+    volumes:
+      - ./books_service/src:/app/books_service/src
+      - ./utils:/app/utils
+
+
+  # ------------------  PAYMENT  --------------------
+  payment:
+    build:
+      context: ./
+      dockerfile: ./payment_service/Dockerfile
+    environment:
+      - PAY_PORT=7100
+    ports:
+      - "7100:7100"
+    volumes:
+      - ./payment_service/src:/app/payment_service/src
+      - ./utils:/app/utils

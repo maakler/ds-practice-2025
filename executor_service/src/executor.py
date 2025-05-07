@@ -11,22 +11,18 @@ import sys
 FILE = __file__
 PROTO_DIR = os.path.abspath(os.path.join(FILE, '../../../utils/pb/queue'))
 sys.path.insert(0, PROTO_DIR)
-
-
-try:
-    import queue_pb2 as qp
-    import queue_pb2_grpc as qp_grpc
-    import election_pb2 as ep
-    import election_pb2_grpc as ep_grpc
-except ImportError as e:
-    logging.error(f"Failed to import protobuf modules: {e}")
-    sys.exit(1)
+sys.path.insert(0, os.path.abspath(os.path.join(FILE, '../../../utils/pb/DB')))
 
 import queue_pb2 as qp
 import queue_pb2_grpc as qp_grpc
 
 import election_pb2 as ep
 import election_pb2_grpc as ep_grpc
+
+import books_pb2 as bp
+import books_pb2_grpc as bp_grpc
+import payment_pb2 as pp
+import payment_pb2_grpc as pp_grpc
 
 from concurrent import futures
 
@@ -51,6 +47,49 @@ class ElectionService(ep_grpc.ElectionServicer):
             self.executor.handle_election_message(message)
         # Empty ids = heartbeat, no action needed
         return ep.Empty()
+
+class TwoPhaseCoordinator:
+    """
+    Very small 2‑PC helper.  Coordinator = Executor‑leader.
+    participants = [(stub, ‘books’), (stub, ‘payment’)]
+    """
+    def __init__(self, order_id, participants):
+        self.order_id = order_id
+        self.parts     = participants        # list[(stub, tag)]
+
+    def prepare(self, staged_writes, amount):
+        votes = []
+        # books first
+        books_stub = [s for s,tag in self.parts if tag=='books'][0]
+        votes.append(
+            books_stub.Prepare(
+                bp.PrepareReq(order_id=self.order_id, staged=staged_writes),
+                timeout=2
+            ).ready
+        )
+        # payment
+        pay_stub = [s for s,tag in self.parts if tag=='payment'][0]
+        votes.append(
+            pay_stub.Prepare(
+                pp.PrepareReq(order_id=self.order_id, amount=amount),
+                timeout=2
+            ).ready
+        )
+        return all(votes)
+
+    def commit(self):
+        for stub,tag in self.parts:
+            if tag=='books':
+                stub.Commit(bp.CommitReq(order_id=self.order_id), timeout=2)
+            else:
+                stub.Commit(pp.CommitReq(order_id=self.order_id), timeout=2)
+
+    def abort(self):
+        for stub,tag in self.parts:
+            if tag=='books':
+                stub.Abort(bp.AbortReq(order_id=self.order_id), timeout=2)
+            else:
+                stub.Abort(pp.AbortReq(order_id=self.order_id), timeout=2)
 
 
 class Executor:
@@ -96,6 +135,50 @@ class Executor:
         except Exception as e:
             logging.error(f"Failed to start threads: {e}", extra={'executor_id': executor_id})
             raise
+
+    # --- new: full order execution via 2‑PC -------------------------------
+    def execute_order(self, order_id:str, order_json:dict):
+        """
+        order_json format:
+          {
+            "items":[{"title":"Book A","qty":2,"price":15.0}, ...],
+            "total": 49.9
+          }
+        """
+        # build stubs once (lazy)
+        if not hasattr(self, "_books_stub"):
+            self._books_stub = bp_grpc.BooksDBStub(
+                grpc.insecure_channel(os.getenv("BOOKS_PRIMARY","books_primary:7000")))
+            self._pay_stub   = pp_grpc.PaymentStub(
+                grpc.insecure_channel(os.getenv("PAYMENT_HOST" ,"payment:7100")))
+
+        staged_writes=[]
+        for it in order_json["items"]:
+            current = self._books_stub.Read(bp.ReadReq(title=it["title"])).stock
+            if current < it["qty"]:
+                logging.info("Order %s aborted – not enough stock for %s",
+                             order_id, it["title"], extra={'executor_id': self.executor_id})
+                return False
+            staged_writes.append(
+                bp.WriteReq(title=it["title"], new_stock=current-it["qty"])
+            )
+
+        coord = TwoPhaseCoordinator(
+            order_id,
+            [(self._books_stub,'books'), (self._pay_stub,'payment')]
+        )
+
+        if coord.prepare(staged_writes, order_json["total"]):
+            coord.commit()
+            logging.info("Order %s committed", order_id,
+                         extra={'executor_id': self.executor_id})
+            return True
+        else:
+            coord.abort()
+            logging.info("Order %s aborted in prepare phase", order_id,
+                         extra={'executor_id': self.executor_id})
+            return False
+
 
     def send_election_message(self, ids=None, leader_id=None, target_id=None):
         for attempt in range(2):  # Retry up to 2 times
@@ -220,8 +303,9 @@ class Executor:
                 try:
                     resp = self.queue_stub.Dequeue(qp.DequeueRequest(), timeout=1.5)  # Reduced timeout
                     if resp.found:
-                        logging.info(f"Executing order {resp.order_id}", extra={'executor_id': self.executor_id})
-                        time.sleep(2)
+                        import json
+                        order_json = json.loads(resp.order_data.decode())
+                        self.execute_order(resp.order_id, order_json)
                     else:
                         time.sleep(3)
                 except grpc.RpcError as e:

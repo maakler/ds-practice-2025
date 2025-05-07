@@ -97,8 +97,6 @@
     <div class="w-full max-w-2xl bg-white p-6 mt-6 mb-6 rounded-lg shadow-md">
         <h2 class="text-xl font-bold text-gray-800 mb-4">Test Scenarios</h2>
         <p class="text-sm text-gray-600 mb-4">Click a scenario button to send a specific request (with edge cases) to
-        <code>http://localhost:8081/checkout_extended</code> and see the request/response below.</p>
-        <code>http://172.18.0.2:8081/checkout_extended</code> and see the request/response below.</p>
 
         <!-- Buttons for different scenarios -->
         <div class="grid grid-cols-2 gap-4">
@@ -141,8 +139,8 @@
     <script>
         // The orchestrator endpoint
         // const CHECKOUT_URL = 'http://172.18.0.2:8081/checkout_extended';
-        const CHECKOUT_URL = 'http://localhost:8081/checkout_extended';
-        const CHECKOUT_URL = 'http://172.18.0.2:8081/checkout_extended';
+        // const CHECKOUT_URL = 'http://localhost:8081/checkout_extended';
+        const CHECKOUT_URL = 'http://172.18.0.3:8081/checkout_extended';
 
         // Items for the normal form
         const items = [
@@ -302,7 +300,7 @@
         /* ------------------------------------------------------------------
          * Test Runner
          * ------------------------------------------------------------------ */
-        const DEMO_URL = 'http://172.18.0.2:8081/run_demo'; // Or wherever your orchestrator is accessible
+        const DEMO_URL = 'http://172.18.0.3:8081/run_demo'; // Or wherever your orchestrator is accessible
 
         async function runDemoFlow() {
             const demoRespDiv = document.getElementById('demoResponse');
